@@ -2,8 +2,8 @@ import json
 import os
 import random
 import bottle
-import keras
-
+import threading
+from LearningEnvirontment import *
 
 from api import ping_response, start_response, move_response, end_response
 
@@ -15,7 +15,7 @@ def index():
     TODO: Using the data from the endpoint request object, your
             snake AI must choose a direction to move in.
     """
-    print(data)
+    #print(data)
     directions = ['up', 'down', 'left', 'right']
     direction = random.choice(directions)
 
@@ -87,10 +87,12 @@ def end():
 application = bottle.default_app()
 
 if __name__ == '__main__':
-    bottle.run(
-        application,
+    threading.Thread(target=bottle.run, kwargs=dict(
+        app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', '8080'),
+        port=os.getenv('PORT', '80'),
         debug=os.getenv('DEBUG', False)
-    )
+        )
+    ).start()
+    print("I CAN DO OTHER THINGS TOO!!")
 
