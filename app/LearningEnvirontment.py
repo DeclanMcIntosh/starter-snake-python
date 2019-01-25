@@ -15,11 +15,14 @@ class Snekgame(gym.Env):
         self.boundsUpper = 1
         self.boundsLower = -1
 
-        #Required OpenAi gym things
-            #a like size defintion for the action space, observationspace are required.
-        self.action_space = spaces.Box(shape=(4,), dtype=np.float32, low=-1, high=1)
-        self.observation_space = spaces.Box(shape=(17*17,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        #Json data from server
+        self.JsonSeverData = None
+        self.newJsonDataFlag = False
 
+        #Required OpenAi gym things
+            #Define observation and action space sizes
+        self.action_space = spaces.Discrete(4)
+        self.observation_space = spaces.Box(shape=(19 * 19 + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -27,10 +30,17 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
+
+        while self.newJsonDataFlag == False:
+            do = "Nothing, wait for new data..."
+        
+        #TODO do the stuff here after we have new data
         observation = "TODO" # numpy array of size we defiend for self.obeservation_space 
         reward = "TODO" # A value where more positive is more good more negative is more bad, just a scalar
         done = "TODO" #True or false for the environement has terminated
 
+        #Reset Flag
+        self.newJsonDataFlag = False
 
             # we return an observation of the state after action is taken
             # a reward for the action just taken, and 
@@ -42,3 +52,7 @@ class Snekgame(gym.Env):
         observation = "TODO"
         # terminates the episode and starts a new episode, returns the first observation of that new episode as a np array.
         return observation
+
+    def sendNewData(self, data):
+        self.JsonSeverData = data
+        self.newJsonDataFlag = True

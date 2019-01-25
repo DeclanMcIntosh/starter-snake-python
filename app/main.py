@@ -5,21 +5,19 @@ import bottle
 import threading
 from LearningEnvirontment import *
 
-from api import ping_response, start_response, move_response, end_response
+from api import ping_response, start_response, move_response, end_response\
+
+envi =  Snekgame()
 
 @bottle.route('/')
 def index():
-    data = bottle.request.json
+    return '''
 
-    """
-    TODO: Using the data from the endpoint request object, your
-            snake AI must choose a direction to move in.
-    """
-    #print(data)
-    directions = ['up', 'down', 'left', 'right']
-    direction = random.choice(directions)
+    Battlesnake documentation can be found at
 
-    return move_response(direction)
+       <a href="https://docs.battlesnake.io">https://docs.battlesnake.io</a>. This snake is ##SNAKE_PERSONALITY_INSERT_HERE##, its created with reinforcement learning algorithms powered by tensorflow, keras and keras-rl. :3
+
+    '''
 
 
 @bottle.route('/static/<path:path>')
@@ -33,23 +31,10 @@ def static(path):
 
 @bottle.post('/ping')
 def ping():
-    """
-    A keep-alive endpoint used to prevent cloud application platforms,
-    such as Heroku, from sleeping the application instance.
-    """
     return ping_response()
 
 @bottle.post('/start')
 def start():
-    data = bottle.request.json
-
-    """
-    TODO: If you intend to have a stateful snake AI,
-            initialize your snake state here using the
-            request's data if necessary.
-    """
-    print(json.dumps(data))
-
     color = "#00FF00"
 
     return start_response(color)
@@ -57,14 +42,9 @@ def start():
 
 @bottle.post('/move')
 def move():
+    global envi
     data = bottle.request.json
-
-    """
-    TODO: Using the data from the endpoint request object, your
-            snake AI must choose a direction to move in.
-    """
-    print(json.dumps(data))
-
+    envi.sendNewData(data)
     directions = ['up', 'down', 'left', 'right']
     direction = random.choice(directions)
 
@@ -74,12 +54,6 @@ def move():
 @bottle.post('/end')
 def end():
     data = bottle.request.json
-
-    """
-    TODO: If your snake AI was stateful,
-        clean up any stateful objects here.
-    """
-    print(json.dumps(data))
 
     return end_response()
 
@@ -95,4 +69,4 @@ if __name__ == '__main__':
         )
     ).start()
     print("I CAN DO OTHER THINGS TOO!!")
-
+    #TODO interface to learning
