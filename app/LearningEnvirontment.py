@@ -27,7 +27,7 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-        oberservatioin = "TODO" # numpy array of size we defiend for self.obeservation_space 
+        observation = "TODO" # numpy array of size we defiend for self.obeservation_space 
         reward = "TODO" # A value where more positive is more good more negative is more bad, just a scalar
         done = "TODO" #True or false for the environement has terminated
 
@@ -36,7 +36,7 @@ class Snekgame(gym.Env):
             # a reward for the action just taken, and 
             # a bool of if the episode is over
             # optionally we can include a dict of other diagnostics we may care about...
-        return oberservation, reward, done, {"needs" : "to be done"}
+        return observation, reward, done, {"needs" : "to be done"}
 
     def reset(self):
         observation = "TODO"
