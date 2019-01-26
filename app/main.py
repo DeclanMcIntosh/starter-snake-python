@@ -48,6 +48,8 @@ def move():
     directions = ['up', 'down', 'left', 'right']
     direction = random.choice(directions)
 
+    move = envi.getMove()
+
     return move_response(direction)
 
 

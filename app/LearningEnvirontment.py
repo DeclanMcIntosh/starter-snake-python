@@ -7,10 +7,35 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
+
+
 class Snekgame(gym.Env):
     '''Snek environement for snek game snek
     '''
     def __init__(self):
+
+        #Snake Decided Moved
+        self.move = 'left'
+        #Snake Decided Moved
+
+        ## Reward definitions
+        self.dieReward = -250
+        self.didNothingReward = -0.1
+        self.eatReward = -0.1
+        self.killReward = 10
+        self.winReward = 250
+        ## Reard definitions
+
+        ## Board Encoding defintion 
+        self.noGo = 1.0
+        self.empty = 0
+        self.food=-0.25
+        self.ourHead = -1
+        self.bodyNorth = 0.7
+        self.bodySouth = 0.6
+        self.bodyEast = 0.5
+        self.bodyWest = 0.4
+        ## Board Encoding definition
 
         self.boundsUpper = 1
         self.boundsLower = -1
@@ -30,7 +55,7 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-
+        
         while self.newJsonDataFlag == False:
             do = "Nothing, wait for new data..."
         
@@ -56,3 +81,6 @@ class Snekgame(gym.Env):
     def sendNewData(self, data):
         self.JsonSeverData = data
         self.newJsonDataFlag = True
+
+    def getMove(self):
+        return 'left'
