@@ -64,7 +64,7 @@ if __name__ == '__main__':
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', '80'),
+        port=os.getenv('PORT', '81'),
         debug=os.getenv('DEBUG', False)
         )
     ).start()
