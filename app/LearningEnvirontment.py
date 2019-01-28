@@ -16,6 +16,7 @@ class Snekgame(gym.Env):
 
         #Snake Decided Moved
         self.move = 'left'
+        self.newMoveFlag = False
         #Snake Decided Moved
 
         ## Reward definitions
@@ -56,6 +57,12 @@ class Snekgame(gym.Env):
 
     def step(self, action):
         
+        self.newMoveFlag = True
+
+        #TODO check what encoding is used by netword to decode action
+        self.move = 'Left' 
+
+
         while self.newJsonDataFlag == False:
             do = "Nothing, wait for new data..."
         
@@ -74,8 +81,9 @@ class Snekgame(gym.Env):
         return observation, reward, done, {"needs" : "to be done"}
 
     def reset(self):
+        while self.newJsonDataFlag == False:
+            do = "Nothing, wait for new data..."
         observation = "TODO"
-        # terminates the episode and starts a new episode, returns the first observation of that new episode as a np array.
         return observation
 
     def sendNewData(self, data):
@@ -83,4 +91,8 @@ class Snekgame(gym.Env):
         self.newJsonDataFlag = True
 
     def getMove(self):
-        return 'left'
+        if self.newMoveFlag:
+            return self.move
+            self.newMoveFlag = False
+        else:
+            return None

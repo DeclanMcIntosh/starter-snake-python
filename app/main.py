@@ -45,11 +45,14 @@ def move():
     global envi
     data = bottle.request.json
     envi.sendNewData(data)
+    #TODO Remove
     directions = ['up', 'down', 'left', 'right']
     direction = random.choice(directions)
+    #TODO end Remove
 
     move = envi.getMove()
 
+        #TODO return move_response(direction) once working
     return move_response(direction)
 
 
@@ -71,4 +74,4 @@ if __name__ == '__main__':
         )
     ).start()
     print("I CAN DO OTHER THINGS TOO!!")
-    #TODO interface to learning
+    #TODO start learning function here
