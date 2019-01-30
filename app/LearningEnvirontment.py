@@ -117,7 +117,8 @@ class Snekgame(gym.Env):
         else:
             return None
 
-    def init_wholesome_boi()
+    # all around good boi. everyone's favourite
+    def init_wholesome_boi() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -126,7 +127,8 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
     
-    def init_wholesome-pp()
+    # that snek who's just a bit better :/
+    def init_wholesome-pp() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = 0
@@ -135,7 +137,8 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
 
-    def init_absolute_unit()
+    # might want to lay off the food. is the snek that makes people in elevators glance at snek capacity limit
+    def init_absolute_unit() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -144,7 +147,8 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
 
-    def init_danger_noodle()
+    # name's snek, james snek. has licence to kill. 2/10; avoid encounters if possible
+    def init_danger_noodle() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -153,7 +157,8 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
 
-    def init_well_fed() # wholesome but just better fed
+    # wholesome but just better fed
+    def init_well_fed() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -162,7 +167,8 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
     
-    def init_hyperdrive()
+    # addicted to caffeine. needs to calm down asap
+    def init_hyper_snek() 
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.5
@@ -171,6 +177,7 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
     
+    # cries when someone eats anything that used to be living. including plants.
     def init_pacifist()
         ## Reward definitions
         self.dieReward          = -250
@@ -180,6 +187,7 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
     
+    # legend says this snek is still running away. no one knows from what.
     def init_scaredy_snek()
         ## Reward definitions
         self.dieReward          = -500
@@ -189,6 +197,7 @@ class Snekgame(gym.Env):
         self.winReward          = 250
         ## Reward definitions
     
+    # everyone who has run across this snek is dead. RUN.
     def init_six_pool()
         ## Reward definitions
         self.dieReward          = -100
