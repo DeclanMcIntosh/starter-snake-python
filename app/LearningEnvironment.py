@@ -69,21 +69,24 @@ class Snekgame(gym.Env):
         data = self.JsonServerData
         board = data["board"]
 
+        # A value where more positive is more good more negative is more bad, just a scalar
         reward = self.previousReward
 
         numSnakesAlive = len(board["snakes"])
 
         currentHP = data["you"]["health"]
 
+        # if currentHP has increased, snake must have eaten
         if (currentHP > self.previousHP)
             reward += self.eatReward
         
+        # if number of snakes alive has decreased, a snake must have died (either directly
+        # through this snake's actions, or through the butterfly effect)
         if (numSnakesAlive < self.previousNumSnakes)
             reward += self.killReward
         
         #TODO do the stuff here after we have new data
         observation = "TODO" # numpy array of size we defiend for self.obeservation_space 
-        reward = "TODO" # A value where more positive is more good more negative is more bad, just a scalar
         done = "TODO" #True or false for the environement has terminated
 
         #Update previous state variables
