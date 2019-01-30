@@ -19,13 +19,8 @@ class Snekgame(gym.Env):
         self.newMoveFlag = False
         #Snake Decided Moved
 
-        ## Reward definitions
-        self.dieReward = -250
-        self.didNothingReward = -0.1
-        self.eatReward = -0.1
-        self.killReward = 10
-        self.winReward = 250
-        ## Reward definitions
+        # Initialize reward values
+        init_wholesole_boi()
 
         ## Board Encoding defintion 
         self.noGo = 1.0
@@ -122,6 +117,83 @@ class Snekgame(gym.Env):
         else:
             return None
 
-    def init_wholesole_boi()
-        
+    def init_wholesome_boi()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = -0.1
+        self.eatReward          = -0.1
+        self.killReward         = 10
+        self.winReward          = 250
+        ## Reward definitions
+    
+    def init_wholesome-pp()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = 0
+        self.eatReward          = 0
+        self.killReward         = 10
+        self.winReward          = 250
+        ## Reward definitions
 
+    def init_absolute_unit()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = -0.1
+        self.eatReward          = 5
+        self.killReward         = 1
+        self.winReward          = 250
+        ## Reward definitions
+
+    def init_danger_noodle()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = -0.1
+        self.eatReward          = 0
+        self.killReward         = 30
+        self.winReward          = 250
+        ## Reward definitions
+
+    def init_well_fed() # wholesome but just better fed
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = -0.1
+        self.eatReward          = 1
+        self.killReward         = 10
+        self.winReward          = 250
+        ## Reward definitions
+    
+    def init_hyperdrive()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = -0.5
+        self.eatReward          = 0
+        self.killReward         = 0
+        self.winReward          = 250
+        ## Reward definitions
+    
+    def init_pacifist()
+        ## Reward definitions
+        self.dieReward          = -250
+        self.didNothingReward   = 1
+        self.eatReward          = 1
+        self.killReward         = -1
+        self.winReward          = 250
+        ## Reward definitions
+    
+    def init_scaredy_snek()
+        ## Reward definitions
+        self.dieReward          = -500
+        self.didNothingReward   = 0
+        self.eatReward          = 0
+        self.killReward         = 0
+        self.winReward          = 250
+        ## Reward definitions
+    
+    def init_six_pool()
+        ## Reward definitions
+        self.dieReward          = -100
+        self.didNothingReward   = 0
+        self.eatReward          = 0
+        self.killReward         = 150
+        self.winReward          = 100
+        ## Reward definitions
