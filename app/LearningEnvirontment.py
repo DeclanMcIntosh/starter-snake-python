@@ -25,12 +25,12 @@ class Snekgame(gym.Env):
         self.eatReward = -0.1
         self.killReward = 10
         self.winReward = 250
-        ## Reard definitions
+        ## Reward definitions
 
         ## Board Encoding defintion 
         self.noGo = 1.0
         self.empty = 0
-        self.food=-0.25
+        self.food = -0.25
         self.ourHead = -1
         self.bodyNorth = 0.7
         self.bodySouth = 0.6
@@ -42,8 +42,13 @@ class Snekgame(gym.Env):
         self.boundsLower = -1
 
         #Json data from server
-        self.JsonSeverData = None
+        self.JsonServerData = None
         self.newJsonDataFlag = False
+
+        #Previous state variables
+        self.previousHP = 10000000      #used to determine whether snake has eaten
+        self.previousNumSnakes = -1     #used to determine whether other snake has died
+        self.previousReward = 0
 
         #Required OpenAi gym things
             #Define observation and action space sizes
@@ -59,17 +64,37 @@ class Snekgame(gym.Env):
         
         self.newMoveFlag = True
 
-        #TODO check what encoding is used by netword to decode action
+        #TODO check what encoding is used by network to decode action
         self.move = 'Left' 
 
 
         while self.newJsonDataFlag == False:
             do = "Nothing, wait for new data..."
         
+        data = self.JsonServerData
+        board = data["board"]
+
+        reward = self.previousReward
+
+        numSnakesAlive = len(board["snakes"])
+
+        currentHP = data["you"]["health"]
+
+        if (currentHP > self.previousHP)
+            reward += self.eatReward
+        
+        if (numSnakesAlive < self.previousNumSnakes)
+            reward += self.killReward
+        
         #TODO do the stuff here after we have new data
         observation = "TODO" # numpy array of size we defiend for self.obeservation_space 
         reward = "TODO" # A value where more positive is more good more negative is more bad, just a scalar
         done = "TODO" #True or false for the environement has terminated
+
+        #Update previous state variables
+        self.previousHP = currentHP
+        self.previousNumSnakes = numSnakesAlive
+        self.previousReward = reward
 
         #Reset Flag
         self.newJsonDataFlag = False
@@ -87,7 +112,7 @@ class Snekgame(gym.Env):
         return observation
 
     def sendNewData(self, data):
-        self.JsonSeverData = data
+        self.JsonServerData = data
         self.newJsonDataFlag = True
 
     def getMove(self):
@@ -96,3 +121,7 @@ class Snekgame(gym.Env):
             self.newMoveFlag = False
         else:
             return None
+
+    def init_wholesole_boi()
+        
+
