@@ -21,7 +21,7 @@ def openChrome():
     pyautogui.click()
     sleep(0.2)
 
-def HitPlay():
+def hitPlay():
     '''
     Hits play button on battle snake
     '''
