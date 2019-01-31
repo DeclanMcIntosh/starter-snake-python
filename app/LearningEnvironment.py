@@ -131,6 +131,8 @@ class Snekgame(gym.Env):
 
         done = "TODO" #True or false for the environement has terminated
 
+        #TODO Manually kill snake if it runs into a no-go area
+
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
