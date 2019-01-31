@@ -101,7 +101,7 @@ class Snekgame(gym.Env):
             for col in range(0, max_board_size):
                 board_state[row,col] = self.noGo
 
-        # Fill enemy snake body locations
+        # Fill enemy snake body segment locations
         for enemy_snake in board["snakes"]:
             # grab each enemy snake (by the head)
 
@@ -113,42 +113,12 @@ class Snekgame(gym.Env):
 
             if (enemy_length < currentLength):
                 enemy_head_val *= -1
-            
-            # get head of enemy snake
-            enemy_head_location = enemy_snake["body"][0]
-            enemy_body_prev_x = enemy_head_location["x"]
-            enemy_body_prev_y = enemy_head_location["y"]
 
-            # encode hp value into head position
-            board_state[enemy_body_prev_x, enemy_body_prev_y] = enemy_head_val
+            # Fill enemy snake body segment locations
+            self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
 
-            # encode rest of body into board, where each body segment points to 
-            # the direction of the previous body segment
-            for i in range(1, len(enemy_snake["body"])):
-                enemy_body_x = enemy_snake["body"][i]["x"]
-                enemy_body_y = enemy_snake["body"][i]["y"]
-
-                # keep in mind, x is used to index the row number (increasing x means moving south), 
-                # and y is used to index column number (increasing y means moving east)
-                #  y-> 0 1 ... n
-                # x:  ___________
-                # 0   |         |
-                # 1   |         |
-                # ... |         |
-                # n   |         |
-                #     -----------
-                if (enemy_body_x == enemy_body_prev_x):
-                    # x value unchanged, so body segment must differ in y
-                    board_state[enemy_body_x, enemy_body_y] = \
-                        self.bodyWest if (enemy_body_y > enemy_body_prev_y) else self.bodyEast
-                else:
-                    # body segment must differ in x
-                    board_state[enemy_body_x,enemy_body_y] = \
-                        self.bodyNorth if (enemy_body_x > enemy_body_prev_x) else self.bodySouth
-
-                enemy_body_prev_x = enemy_body_x
-                enemy_body_prev_y = enemy_body_y
-
+        # Fill our snake body segment locations
+        self.fillSnakeBodySegments(board_state, self.ourHead, data["you"]["body"])
 
         # Fill food locations
         for xy_pair in board["food"]:
@@ -191,6 +161,42 @@ class Snekgame(gym.Env):
             self.newMoveFlag = False
         else:
             return None
+
+    def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
+        # get location of head
+        head_location = whole_snake["body"][0]
+        body_prev_x = head_location["x"]
+        body_prev_y = head_location["y"]
+
+        # encode head position
+        board_state[body_prev_x, body_prev_y] = head_val
+
+        # encode rest of body into board, where each body segment points to 
+        # the direction of the previous body segment
+        for i in range(1, len(whole_snake["body"])):
+            body_x = whole_snake["body"][i]["x"]
+            body_y = whole_snake["body"][i]["y"]
+
+            # keep in mind, x is used to index the row number (increasing x means moving south), 
+            # and y is used to index column number (increasing y means moving east)
+            #  y-> 0 1 ... n
+            # x:  ___________
+            # 0   |         |
+            # 1   |         |
+            # ... |         |
+            # n   |         |
+            #     -----------
+            if (body_x == body_prev_x):
+                # x value unchanged, so body segment must differ in y
+                board_state[body_x, body_y] = \
+                    self.bodyWest if (body_y > body_prev_y) else self.bodyEast
+            else:
+                # body segment must differ in x
+                board_state[body_x,body_y] = \
+                    self.bodyNorth if (body_x > body_prev_x) else self.bodySouth
+
+            body_prev_x = body_x
+            body_prev_y = body_y
 
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
