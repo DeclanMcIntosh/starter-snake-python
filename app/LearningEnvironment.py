@@ -20,7 +20,7 @@ class Snekgame(gym.Env):
         #Snake Decided Moved
 
         # Initialize reward values
-        init_wholesole_boi()
+        self.init_wholesome_boi()
 
         ## Board Encoding defintion 
         self.noGo = 1.0
