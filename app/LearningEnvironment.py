@@ -7,7 +7,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-
+max_board_size = 21
 
 class Snekgame(gym.Env):
     '''Snek environement for snek game snek
@@ -70,23 +70,33 @@ class Snekgame(gym.Env):
         board = data["board"]
 
         # A value where more positive is more good more negative is more bad, just a scalar
-        reward = self.previousReward
+        reward = 0
 
         numSnakesAlive = len(board["snakes"])
 
         currentHP = data["you"]["health"]
 
         # if currentHP has increased, snake must have eaten
-        if (currentHP > self.previousHP)
+        if (currentHP > self.previousHP):
             reward += self.eatReward
         
         # if number of snakes alive has decreased, a snake must have died (either directly
         # through this snake's actions, or through the butterfly effect)
-        if (numSnakesAlive < self.previousNumSnakes)
+        if (numSnakesAlive < self.previousNumSnakes):
             reward += self.killReward
         
         #TODO do the stuff here after we have new data
-        observation = "TODO" # numpy array of size we defiend for self.obeservation_space 
+        board_state = np.zeros((max_board_size, max_board_size)) # numpy array of size we defined for self.observation_space 
+
+        # Fill empty spaces with walls
+        for row in range(board["height"], max_board_size):
+            for col in range(board["width"], max_board_size):
+                board_state[row,col] = self.noGo
+        
+
+
+        observation = "TODO" # flatten board_state matrix, and add HP flag
+
         done = "TODO" #True or false for the environement has terminated
 
         #Update previous state variables
@@ -121,7 +131,7 @@ class Snekgame(gym.Env):
             return None
 
     # all around good boi. everyone's favourite
-    def init_wholesome_boi() 
+    def init_wholesome_boi(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -131,7 +141,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
     
     # that snek who's just a bit better :/
-    def init_wholesome-pp() 
+    def init_wholesome_pp(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = 0
@@ -141,7 +151,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
 
     # might want to lay off the food. is the snek that makes people in elevators glance at snek capacity limit
-    def init_absolute_unit() 
+    def init_absolute_unit(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -151,7 +161,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
 
     # name's snek, james snek. has licence to kill. 2/10; avoid encounters if possible
-    def init_danger_noodle() 
+    def init_danger_noodle(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -161,7 +171,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
 
     # wholesome but just better fed
-    def init_well_fed() 
+    def init_well_fed(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.1
@@ -171,7 +181,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
     
     # addicted to caffeine. needs to calm down asap
-    def init_hyper_snek() 
+    def init_hyper_snek(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = -0.5
@@ -181,7 +191,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
     
     # cries when someone eats anything that used to be living. including plants.
-    def init_pacifist()
+    def init_pacifist(self):
         ## Reward definitions
         self.dieReward          = -250
         self.didNothingReward   = 1
@@ -191,7 +201,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
     
     # legend says this snek is still running away. no one knows from what.
-    def init_scaredy_snek()
+    def init_scaredy_snek(self):
         ## Reward definitions
         self.dieReward          = -500
         self.didNothingReward   = 0
@@ -201,7 +211,7 @@ class Snekgame(gym.Env):
         ## Reward definitions
     
     # everyone who has run across this snek is dead. RUN.
-    def init_six_pool()
+    def init_six_pool(self):
         ## Reward definitions
         self.dieReward          = -100
         self.didNothingReward   = 0
