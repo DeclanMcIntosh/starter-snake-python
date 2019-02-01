@@ -2,6 +2,7 @@ import numpy as np
 import json
 import glob, os
 from random import randint
+import time
 
 import gym
 from gym import spaces
@@ -18,6 +19,7 @@ class Snekgame(gym.Env):
         #Snake Decided Moved
         self.move = 'left'
         self.newMoveFlag = False
+        self.gameOverFlag = False
         #Snake Decided Moved
 
         # Initialize reward values
@@ -51,7 +53,7 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=(19 * 19 + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        self.observation_space = spaces.Box(shape=(max_board_size * max_board_size + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -61,15 +63,38 @@ class Snekgame(gym.Env):
     def step(self, action):
         
         self.newMoveFlag = True
-
-        #TODO check what encoding is used by network to decode action
-        self.move = 'Left' 
-
-
+        if action == 0:
+            self.move = 'left' 
+        if action == 1:
+            self.move = 'right' 
+        if action == 2:
+            self.move = 'up' 
+        if action == 3:
+            self.move = 'down' 
         while self.newJsonDataFlag == False:
-            do = "Nothing, wait for new data..."
+            time.sleep(0.01)
         
-        data = self.JsonServerData
+        observation, reward = self.findObservation(self.JsonServerData)
+
+        #Reset Flag
+        self.newJsonDataFlag = False
+
+            # we return an observation of the state after action is taken
+            # a reward for the action just taken, and 
+            # a bool of if the episode is over
+            # optionally we can include a dict of other diagnostics we may care about...
+        print(self.gameOverFlag)
+        return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
+
+    def reset(self):
+        while self.newJsonDataFlag == False:
+            time.sleep(0.01)
+        self.gameOverFlag = False
+        observation , reward = self.findObservation(self.JsonServerData)
+        
+        return observation
+
+    def findObservation(self, data):
         board = data["board"]
 
         # A value where more positive is more good more negative is more bad, just a scalar
@@ -83,14 +108,14 @@ class Snekgame(gym.Env):
 
         # if currentHP has increased, snake must have eaten
         if (currentHP > self.previousHP):
-            reward += self.eatReward
+            reward = self.eatReward
         
         # if number of snakes alive has decreased, a snake must have died (either directly
         # through this snake's actions, or through the butterfly effect)
         if (numSnakesAlive < self.previousNumSnakes):
-            reward += self.killReward
+            reward = self.killReward
         
-        board_state = np.zeros((max_board_size, max_board_size)) # numpy array of size we defined for self.observation_space 
+        board_state = np.zeros((max_board_size, max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
 
         # Fill wall locations
         for row in range(0, board["height"]):
@@ -118,7 +143,7 @@ class Snekgame(gym.Env):
             self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
 
         # Fill our snake body segment locations
-        self.fillSnakeBodySegments(board_state, self.ourHead, data["you"]["body"])
+        self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
 
         # Fill food locations
         for xy_pair in board["food"]:
@@ -127,31 +152,29 @@ class Snekgame(gym.Env):
             # else:
             #     raise ValueError('Food occurred in place where something already exists!')
 
-        observation = "TODO" # flatten board_state matrix, and add HP flag
-
-        done = "TODO" #True or false for the environement has terminated
-
-        #TODO Manually kill snake if it runs into a no-go area
-
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
         self.previousReward = reward
 
-        #Reset Flag
-        self.newJsonDataFlag = False
+        #check if the game has been won or lost, and adjust reward accordingly.
+        if self.gameOverFlag == True:
+            if self.winFlag == True:
+                reward = self.winReward
+            else: 
+                reward = self.dieReward 
 
-            # we return an observation of the state after action is taken
-            # a reward for the action just taken, and 
-            # a bool of if the episode is over
-            # optionally we can include a dict of other diagnostics we may care about...
-        return observation, reward, done, {"needs" : "to be done"}
+        #Flatten the output and place in a current hp value
+        boardStateFlat = np.ndarray.flatten(board_state)
+        observation = np.zeros(shape=(max_board_size*max_board_size+1,), dtype=np.float32)
+        observation[0:max_board_size*max_board_size] = boardStateFlat
+        observation[max_board_size*max_board_size] = currentHP
 
-    def reset(self):
-        while self.newJsonDataFlag == False:
-            do = "Nothing, wait for new data..."
-        observation = "TODO"
-        return observation
+        return observation, reward
+
+    def endEnvi(self, win):
+        self.winFlag = win
+        self.gameOverFlag = True
 
     def sendNewData(self, data):
         self.JsonServerData = data

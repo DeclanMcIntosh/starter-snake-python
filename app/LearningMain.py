@@ -50,7 +50,8 @@ def startLearning(Env):
     # We train and store 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=25000, visualize=True, verbose=0)
+        print("started fitting")
+        dqn.fit(env, nb_steps=25000, visualize=False, verbose=0)
         dqn.save_weights('dqn_SNEK_ALPHA_weights_' + counter + '_.h5f', overwrite=True)
 
     # Finally, evaluate our algorithm for 5 episodes.

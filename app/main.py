@@ -3,7 +3,8 @@ import os
 import random
 import bottle
 import threading
-from LearningEnvirontment import *
+from LearningEnvironment import *
+from LearningMain import *
 
 from api import ping_response, start_response, move_response, end_response\
 
@@ -45,21 +46,19 @@ def move():
     global envi
     data = bottle.request.json
     envi.sendNewData(data)
-    #TODO Remove
-    directions = ['up', 'down', 'left', 'right']
-    direction = random.choice(directions)
-    #TODO end Remove
-
     move = envi.getMove()
-
-        #TODO return move_response(direction) once working
-    return move_response(direction)
+    while move == None:
+        move = envi.getMove()
+    return move_response(move)
 
 
 @bottle.post('/end')
 def end():
+    #TODO pass information if you won or not
     data = bottle.request.json
-
+    if len(data['board']['snakes']) == 0:
+        envi.endEnvi(win=True)
+    
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -69,9 +68,8 @@ if __name__ == '__main__':
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', '81'),
+        port=os.getenv('PORT', '80'),
         debug=os.getenv('DEBUG', False)
         )
     ).start()
-    print("I CAN DO OTHER THINGS TOO!!")
-    #TODO start learning function here
+    startLearning(envi)
