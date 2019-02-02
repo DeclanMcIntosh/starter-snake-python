@@ -5,6 +5,7 @@ import bottle
 import threading
 from LearningEnvironment import *
 from LearningMain import *
+from cheekyRunGamesScript import *
 
 from api import ping_response, start_response, move_response, end_response\
 
@@ -74,4 +75,5 @@ if __name__ == '__main__':
         debug=os.getenv('DEBUG', False)
         )
     ).start()
+    startup()
     startLearning(envi)
