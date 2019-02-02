@@ -43,63 +43,58 @@ def scaleChrome():
     '''
     pyautogui.moveTo(x=1890, y=50)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.moveTo(x=1760, y=235)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
     pyautogui.click()
-    sleep(0.1)
+    pyautogui.click()
+    pyautogui.click()
+    pyautogui.click()
+    pyautogui.click()
 
-def setGameSize(width,foodAmount):
+def setGameSize(size,foodAmount):
     '''
     Sets up a game for the width of the
     game (must be one of the turnament values),
     and the food amount(can be any value)
     '''
-    if width != 7 and width != 11 and width != 19:
-        print("Width value is invalid so it has been set to 7")
-        width=7
-    pyautogui.moveTo(x=900,y=155)
-    pyautogui.click()
-    sleep(0.1)
-    pyautogui.press('backspace')
-    pyautogui.press('backspace')
-    pyautogui.press('backspace')
-    if width == 7:
-        pyautogui.press('7')
-    if width == 11:
-        pyautogui.press('1')
-        pyautogui.press('1')
-    if width == 19:
-        pyautogui.press('1')
-        pyautogui.press('9')
-    pyautogui.moveTo(x=970,y=155)
-    pyautogui.click()
-    sleep(0.1)    
-    pyautogui.press('backspace')
-    pyautogui.press('backspace')
-    pyautogui.press('backspace')
-    if width == 7:
-        pyautogui.press('7')
-    if width == 11:
-        pyautogui.press('1')
-        pyautogui.press('1')
-    if width == 19:
-        pyautogui.press('1')
-        pyautogui.press('9')
-    pyautogui.moveTo(x=1020,y=155)
+    if size not in ["small", "medium", "large"]:
+        size = "small"
+    
+    if size == "small":
+        #Set the board size
+        pyautogui.moveTo(x=900,y=155)
+        pyautogui.click()
+        sleep(0.1)
+        pyautogui.moveTo(x=900,y=160)
+        pyautogui.click()
+        sleep(0.1)     
+
+    if size == "medium":
+        #Set the board size
+        pyautogui.moveTo(x=900,y=155)
+        pyautogui.click()
+        sleep(0.1)
+        pyautogui.moveTo(x=900,y=170)
+        pyautogui.click()
+        sleep(0.1)  
+
+    if size == "large":
+        #Set the board size
+        pyautogui.moveTo(x=900,y=155)
+        pyautogui.click()
+        sleep(0.1)
+        pyautogui.moveTo(x=900,y=180)
+        pyautogui.click()
+        sleep(0.1)
+
+    # Set the amount of food
+    pyautogui.moveTo(x=890,y=180)
     pyautogui.click()
     pyautogui.press('backspace')
     pyautogui.press('backspace')
@@ -125,20 +120,35 @@ def assignSnakes():
     pyautogui.click()
 
 def resetForm():
-    pyautogui.moveTo(x=1030, y=180)
+    pyautogui.moveTo(x=1030, y=220)
     pyautogui.click()
     sleep(1.5)  
 
-openChrome()
-scaleChrome()
+def assignForNoCollisionTraining():
+    pyautogui.moveTo(x=1920/2, y=250)
+    pyautogui.click()
+    sleep(0.05)
+    pyautogui.moveTo(x=1920/2, y=260)
+    pyautogui.click()  
+    sleep(0.05)
+    pyautogui.moveTo(x=1920/2, y=555)
+    pyautogui.click()  
+    sleep(0.1)
 
-while(True):
+def startup():
+    openChrome()
+    scaleChrome()
+
+def runAGameForNoCollisionTraining():
     '''TODO make this detect when game is over and 
     then restart rather than wait a known period of time
     '''
     hitPlay()
     createNewGame()
     resetForm()
-    setGameSize(width=19, foodAmount=random.randint(1,75))
-    assignSnakes()
-    sleep(145)   
+    sizes = ["small", "medium", "large"]
+    random.shuffle(sizes)
+    setGameSize(size=sizes[0], foodAmount=random.randint(3,50))
+    assignForNoCollisionTraining()
+    sleep(5)   
+
