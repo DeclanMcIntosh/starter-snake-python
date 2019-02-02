@@ -50,7 +50,6 @@ class Snekgame(gym.Env):
         #Previous state variables
         self.previousHP = max_health + 1      #used to determine whether snake has eaten
         self.previousNumSnakes = -1     #used to determine whether other snake has died
-        self.previousReward = 0
 
         #Required OpenAi gym things
             #Define observation and action space sizes
@@ -168,7 +167,6 @@ class Snekgame(gym.Env):
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
-        self.previousReward = reward
 
         #If nothing has been done, do nothing reward
         if rewardSet == False:
@@ -211,6 +209,8 @@ class Snekgame(gym.Env):
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
         wallDeathFlag = False
+        if (len(whole_snake["body"]) == 0):
+            return None
 
         # get location of head
         head_location = whole_snake["body"][0]
@@ -228,12 +228,13 @@ class Snekgame(gym.Env):
             # keep in mind, x is used to index the row number (increasing x means moving south), 
             # and y is used to index column number (increasing y means moving east)
             #  y-> 0 1 ... n
-            # x:  ___________
-            # 0   |         |
-            # 1   |         |
-            # ... |         |
-            # n   |         |
-            #     -----------
+            # x:  _____________
+            # 0   |           |
+            # 1   |           |
+            # .   |           |
+            # :   |           |
+            # n   |           |
+            #     -------------
             if (body_x == body_prev_x):
                 # x value unchanged, so body segment must differ in y
                 board_state[body_x, body_y] = \
@@ -259,7 +260,7 @@ class Snekgame(gym.Env):
         self.eatReward          = -0.1
         self.killReward         = 10
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
     
     # that snek who's just a bit better :/
@@ -270,7 +271,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 0
         self.killReward         = 10
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
 
     # might want to lay off the food. is the snek that makes people in elevators glance at snek capacity limit
@@ -281,7 +282,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 5
         self.killReward         = 1
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
 
     # name's snek, james snek. has licence to kill. 2/10; avoid encounters if possible
@@ -292,7 +293,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 0
         self.killReward         = 30
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
 
     # wholesome but just better fed
@@ -303,7 +304,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 1
         self.killReward         = 10
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
     
     # addicted to caffeine. needs to calm down asap
@@ -314,7 +315,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 0
         self.killReward         = 0
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
     
     # cries when someone eats anything that used to be living. including plants.
@@ -325,7 +326,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 1
         self.killReward         = -1
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
     
     # legend says this snek is still running away. no one knows from what.
@@ -336,7 +337,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 0
         self.killReward         = 0
         self.winReward          = 250
-        self.diedOnWallReward = -500
+        self.diedOnWallReward   = -500
         ## Reward definitions
     
     # everyone who has run across this snek is dead. RUN.
@@ -347,7 +348,7 @@ class Snekgame(gym.Env):
         self.eatReward          = 0
         self.killReward         = 150
         self.winReward          = 100
-        self.diedOnWallReward = -100
+        self.diedOnWallReward   = -100
         ## Reward definitions
 
     def train_not_hit_walls(self):
@@ -357,5 +358,5 @@ class Snekgame(gym.Env):
         self.eatReward          = 10
         self.killReward         = 1
         self.winReward          = 250
-        self.diedOnWallReward = -250
+        self.diedOnWallReward   = -250
         ## Reward definitions
