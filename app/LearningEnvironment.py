@@ -8,7 +8,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-max_board_size = 21
+max_board_size = 19
 max_health = 100
 
 class Snekgame(gym.Env):

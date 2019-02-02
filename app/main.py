@@ -58,7 +58,9 @@ def end():
     data = bottle.request.json
     if len(data['board']['snakes']) == 0:
         envi.endEnvi(win=True)
-    
+    else:
+        envi.endEnvi(win=False)
+    envi.sendNewData(data)
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
