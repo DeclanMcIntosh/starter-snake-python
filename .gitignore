@@ -1,5 +1,6 @@
 *.DS_Store
 *.pyc
+*.h5f
 battlesnake
 .idea
 .vscode
