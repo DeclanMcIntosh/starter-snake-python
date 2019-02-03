@@ -3,13 +3,16 @@ import os
 import random
 import bottle
 import threading
+import time
 from LearningEnvironment import *
 from LearningMain import *
 from cheekyRunGamesScript import *
 
-from api import ping_response, start_response, move_response, end_response\
+from api import ping_response, start_response, move_response, end_response
 
 envi =  Snekgame()
+envi.train_not_hit_walls()
+startTime = time.time()
 
 @bottle.route('/')
 def index():
@@ -37,31 +40,40 @@ def ping():
 
 @bottle.post('/start')
 def start():
+    #print("start request recived")
     color = "#00FF00"
-
+    startTime = time.time()
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
+    #print("move Request recived")
     global envi
     data = bottle.request.json
     envi.sendNewData(data)
     move = envi.getMove()
     while move == None:
         move = envi.getMove()
+    #print("Got move from environemnt")    
     return move_response(move)
 
 
 @bottle.post('/end')
 def end():
-    #TODO pass information if you won or not
+    #print("end message recived")
     data = bottle.request.json
     if len(data['board']['snakes']) == 0:
-        envi.endEnvi(win=True)
+        # For collision avoidance with one snake running right now we alwuas return fail
+        envi.endEnvi(win=False)
+        #envi.endEnvi(win=True)
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
+    sleepTime = 15 - time.time() + startTime
+    if sleepTime > 0:
+        sleep(sleepTime)
+    runAGameForNoCollisionTraining()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -72,8 +84,8 @@ if __name__ == '__main__':
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
         port=os.getenv('PORT', '80'),
-        debug=os.getenv('DEBUG', False)
+        debug=os.getenv('DEBUG', False),
+        quiet=True
         )
     ).start()
-    startup()
     startLearning(envi)

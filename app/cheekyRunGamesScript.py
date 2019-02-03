@@ -17,7 +17,7 @@ def openChrome():
     makes the open screen chrome, requires chome
     be the fist thing on task bar
     '''
-    pyautogui.moveTo(x=525, y=1050)
+    pyautogui.moveTo(x=520, y=1050)
     pyautogui.click()
     sleep(0.2)
 
@@ -27,7 +27,7 @@ def hitPlay():
     '''
     pyautogui.moveTo(x=115, y=78)
     pyautogui.click()
-    sleep(1.5)
+    sleep(2.5)
 
 def createNewGame():
     '''
@@ -35,7 +35,7 @@ def createNewGame():
     '''
     pyautogui.moveTo(x=1920/2, y=130)
     pyautogui.click()
-    sleep(0.2)
+    sleep(1.5)
 
 def scaleChrome():
     '''
@@ -122,18 +122,16 @@ def assignSnakes():
 def resetForm():
     pyautogui.moveTo(x=1030, y=220)
     pyautogui.click()
-    sleep(1.5)  
+    sleep(0.3)  
 
 def assignForNoCollisionTraining():
     pyautogui.moveTo(x=1920/2, y=250)
     pyautogui.click()
-    sleep(0.05)
     pyautogui.moveTo(x=1920/2, y=260)
     pyautogui.click()  
-    sleep(0.05)
+    #Hit play
     pyautogui.moveTo(x=1920/2, y=555)
     pyautogui.click()  
-    sleep(0.1)
 
 def startup():
     openChrome()
@@ -148,7 +146,5 @@ def runAGameForNoCollisionTraining():
     resetForm()
     sizes = ["small", "medium", "large"]
     random.shuffle(sizes)
-    setGameSize(size=sizes[0], foodAmount=random.randint(3,50))
+    setGameSize(size=sizes[0], foodAmount=random.randint(3,17))
     assignForNoCollisionTraining()
-    sleep(5)   
-
