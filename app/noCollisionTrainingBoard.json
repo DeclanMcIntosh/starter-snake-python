@@ -1,0 +1,11 @@
+{
+    "width": 19,
+    "height": 19,
+    "food": 10,
+    "snakes": [
+      {
+        "name": "No Collision Training",
+        "url": "http://96.54.234.28:80"
+      }
+    ]
+  }
