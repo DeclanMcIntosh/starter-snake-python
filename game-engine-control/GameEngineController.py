@@ -9,7 +9,7 @@ from snakeConfigMaker import *
 # Should end with the call to engine: '**/engine'
 # Declan's directory: C:/Users/decla/Desktop/Snake Game Server
 ENGINE_DIRECTORY = './engine ' 
-JSON_FILE_LOCATION = 'snake_config.json '
+JSON_FILE_LOCATION = 'snake-config.json '
 
 CREATE_GAME = 'create -c '
 RUN_GAME = 'run -g '
