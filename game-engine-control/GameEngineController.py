@@ -39,6 +39,8 @@ def main():
         output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
 
         hash = json.loads(output)["ID"]
+
+        print("Game Hash: " + hash)
         
         run_command(ENGINE_DIRECTORY + RUN_GAME + hash)
 
