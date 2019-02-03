@@ -3,12 +3,13 @@ import shlex
 import time
 import json
 import string
+from snakeConfigMaker import *
 
 
 # Should end with the call to engine: '**/engine'
 # Declan's directory: C:/Users/decla/Desktop/Snake Game Server
 ENGINE_DIRECTORY = './engine ' 
-JSON_FILE_LOCATION = 'snake_list.json '
+JSON_FILE_LOCATION = 'snake_config.json '
 
 CREATE_GAME = 'create -c '
 RUN_GAME = 'run -g '
@@ -35,6 +36,8 @@ def run_command(command_line):
 
 def main():
     input("Press Enter to continue...")
+    snakeConfigMakerNoHitWalls()
+
     while(True):
         output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
 
@@ -47,7 +50,7 @@ def main():
         while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash).decode("utf-8").find(COMPLETE_STATUS) == -1):
             time.sleep(SLEEP_TIME)
 
-        # TODO generate new json file
+        snakeConfigMakerNoHitWalls()
 
 # sentinel 
 if __name__ == "__main__":
