@@ -14,13 +14,14 @@ def snakeConfigMaker():
     #randomly select food amount; range is currently 1 to double length of board
     foodAmount = random.randint(1, size*2)
 
-    #shuffle snakes and take eight of them, always including the base snake
+    #randomize snakes: shuffle snakes and take eight of them, always including the base snake
     allSnakes = ["http://96.54.234.28:80", "http://96.54.234.28:81", "http://96.54.234.28:82", "http://96.54.234.28:83", "http://96.54.234.28:84", 
                  "http://96.54.234.28:85", "http://96.54.234.28:86", "http://96.54.234.28:87", "http://96.54.234.28:88", "http://96.54.234.28:89", ]
     random.shuffle(allSnakes)
     playingSnakes = allSnakes[0:random.randint(1,8)]
 
     #create the dict of snakes
+    #the name is just the last number in the IP address
     snakes = []
     for snake in playingSnakes:
         thing = {}
