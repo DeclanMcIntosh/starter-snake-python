@@ -4,7 +4,6 @@ import time
 import json
 import string
 
-create_output = '{"ID": "116008e7-a33f-40d6-a97b-004fa4f80116"}'
 
 # Should end with the call to engine: '**/engine'
 # Declan's directory: C:/Users/decla/Desktop/Snake Game Server
@@ -39,13 +38,11 @@ def main():
     while(True):
         output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
 
-        output = create_output #TODO remove
-
         hash = json.loads(output)["ID"]
         
         run_command(ENGINE_DIRECTORY + RUN_GAME + hash)
 
-        while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash).find(COMPLETE_STATUS) == -1):
+        while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash).decode("utf-8").find(COMPLETE_STATUS) == -1):
             time.sleep(SLEEP_TIME)
 
         # TODO generate new json file
