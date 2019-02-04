@@ -70,10 +70,10 @@ def end():
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
-    sleepTime = 15 - time.time() + startTime
-    if sleepTime > 0:
-        sleep(sleepTime)
-    runAGameForNoCollisionTraining()
+    #sleepTime = 15 - time.time() + startTime
+    #if sleepTime > 0:
+    #    sleep(sleepTime)
+    #runAGameForNoCollisionTraining()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)

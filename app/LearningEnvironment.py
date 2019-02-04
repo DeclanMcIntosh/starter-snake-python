@@ -9,7 +9,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-max_board_size = 20
+max_board_size = 20 # must be even
 max_health = 100
 
 class Snekgame(gym.Env):
@@ -54,7 +54,7 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=(max_board_size * max_board_size + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        self.observation_space = spaces.Box(shape=((max_board_size + max_board_size) * (max_board_size + max_board_size) + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -95,7 +95,7 @@ class Snekgame(gym.Env):
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
             if time.time() - waitStartTime > 25:
-                runAGameForNoCollisionTraining()
+                #runAGameForNoCollisionTraining()
                 waitStartTime = time.time()
         self.gameOverFlag = False
         self.newJsonDataFlag = False
@@ -128,7 +128,8 @@ class Snekgame(gym.Env):
             rewardSet = True
         
         board_state = np.zeros((max_board_size, max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
-
+        outputBoard = np.full((max_board_size*2, max_board_size*2), -1.0, dtype=np.float32)
+        
         # Fill wall locations
         for row in range(0, board["height"]):
             for col in range(board["width"], max_board_size):
@@ -155,7 +156,7 @@ class Snekgame(gym.Env):
             self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
 
         # Fill our snake body segment locations
-        diedOnWallFlag = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
+        diedOnWallFlag, head_x, head_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
 
         # Fill food locations
         for xy_pair in board["food"]:
@@ -184,11 +185,23 @@ class Snekgame(gym.Env):
                     reward += self.dieReward 
 
         #Flatten the output and place in a current hp value
-        self.diag.write(np.array2string(board_state, max_line_width=10000))
-        boardStateFlat = np.ndarray.flatten(board_state)
-        observation = np.zeros(shape=(max_board_size*max_board_size+1,), dtype=np.float32)
-        observation[0:max_board_size*max_board_size] = boardStateFlat
-        observation[max_board_size*max_board_size] = currentHP
+        #Place centered
+        startingNum = int(max_board_size)
+        endingNum = int(max_board_size + max_board_size)
+        if head_x < 0:
+            head_x = 0
+        if head_y < 0:
+            head_y = 0
+        outputBoard[startingNum - int(head_x) : endingNum - int(head_x), startingNum - int(head_y) : endingNum - int(head_y)] = board_state
+
+        #Print the board to a diagnostic file currently not working, cuts off inside of the arrays
+        #self.diag.write(np.array2string(board_state, max_line_width=10000))
+
+        boardStateFlat = np.ndarray.flatten(outputBoard)
+
+        observation = np.zeros(shape=((max_board_size + max_board_size)*(max_board_size + max_board_size)+1,), dtype=np.float32)
+        observation[0:(max_board_size + max_board_size)*(max_board_size + max_board_size)] = boardStateFlat
+        observation[(max_board_size + max_board_size)*(max_board_size + max_board_size)] = currentHP
 
         return observation, reward
 
@@ -250,7 +263,7 @@ class Snekgame(gym.Env):
         # encode head position
         board_state[head_location["x"], head_location["y"]] = head_val
 
-        return wallDeathFlag
+        return wallDeathFlag, head_location["x"], head_location["y"]
 
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
@@ -354,9 +367,9 @@ class Snekgame(gym.Env):
     def train_not_hit_walls(self):
         ## Reward definitions
         self.dieReward          = -100
-        self.didNothingReward   = 0.5
-        self.eatReward          = 10
+        self.didNothingReward   = 1
+        self.eatReward          = 1
         self.killReward         = 1
         self.winReward          = 250
-        self.diedOnWallReward   = -250
+        self.diedOnWallReward   = -150
         ## Reward definitions
