@@ -367,8 +367,8 @@ class Snekgame(gym.Env):
     def train_not_hit_walls(self):
         ## Reward definitions
         self.dieReward          = -100
-        self.didNothingReward   = 1
-        self.eatReward          = 1
+        self.didNothingReward   = 5
+        self.eatReward          = 5
         self.killReward         = 1
         self.winReward          = 250
         self.diedOnWallReward   = -150
