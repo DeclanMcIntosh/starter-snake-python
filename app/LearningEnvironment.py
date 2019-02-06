@@ -103,12 +103,8 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
-        waitStartTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-            if time.time() - waitStartTime > 25:
-                #runAGameForNoCollisionTraining()
-                waitStartTime = time.time()
         self.gameOverFlag = False
         self.newJsonDataFlag = False
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
