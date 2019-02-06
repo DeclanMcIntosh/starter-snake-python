@@ -28,12 +28,16 @@ def startLearning(Env):
     #model.add(Activation('relu'))
     #model.add(Dense(128))
     #model.add(Activation('relu'))
-    #model.add(Dense(64))
-    #model.add(Activation('relu'))
+    model.add(Dense(128))
+    model.add(Activation('relu'))
+    model.add(Dense(64))
+    model.add(Activation('relu'))
     model.add(Dense(32))
     model.add(Activation('relu'))
-    model.add(Dense(16))
-    model.add(Activation('relu'))
+    #model.add(Dense(16))
+    #model.add(Activation('relu'))
+    #model.add(Dense(16))
+    #model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
@@ -45,26 +49,25 @@ def startLearning(Env):
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
     memory = SequentialMemory(limit=90000, window_length=1)
-    #policy = BoltzmannQPolicy()
-    policy = EpsGreedyQPolicy(eps=0.05)
+    policy = BoltzmannQPolicy()
+    #policy = EpsGreedyQPolicy(eps=0.05)
     #dqn = SARSAAgent(model=model, nb_actions=nb_actions, policy=policy, nb_steps_warmup=1000, gamma=0.7)
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
-    dqn.compile(nadam(lr=0.01), metrics=['mae']) 
+    dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
-    dqn.load_weights("dqn_SNEK_ALPHA_NO_HIT_WALLS_weights_99_.h5f")
+    dqn.load_weights("dqn_SNEK_BETA_NO_HIT_WALLS_weights_0_.h5f")
 
     #Load Previous training 
-    #model.load_weights(filepath="dqn_SNEK_ALPHA_NO_HIT_WALLS_weights_98_.h5f")
 
     #Start traing
     # Ctrl + C.
     # We train and store 
-    counter = 100
+    counter = 1
     while True:
         print("started fitting")
-        dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)
-        dqn.save_weights('dqn_SNEK_ALPHA_NO_HIT_WALLS_weights_' + str(counter) + '_.h5f', overwrite=True)
+        dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
+        dqn.save_weights('dqn_SNEK_BETA_NO_HIT_WALLS_weights_' + str(counter) + '_.h5f', overwrite=True)
         counter+=1
 
-    # Finally, evaluate our algorithm for 5 episodes.
-    #dqn.test(env, nb_episodes=5, visualize=True)
+        # Finally, evaluate our algorithm for 5 episodes.
+        dqn.test(env, nb_episodes=15, visualize=False)

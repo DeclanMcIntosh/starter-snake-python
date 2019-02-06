@@ -10,6 +10,7 @@ from gym import spaces
 from gym.utils import seeding
 
 max_board_size = 20 # must be even
+centerd_view_size = 10 # must be even
 max_health = 100
 
 class Snekgame(gym.Env):
@@ -22,6 +23,7 @@ class Snekgame(gym.Env):
         self.move = 'left'
         self.newMoveFlag = False
         self.gameOverFlag = False
+        self.currSaveMoves = []
         #Snake Decided Moved
 
         # Initialize reward values
@@ -54,7 +56,7 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=((max_board_size + max_board_size) * (max_board_size + max_board_size) + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        self.observation_space = spaces.Box(shape=((max_board_size * max_board_size) + (centerd_view_size * centerd_view_size) + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -62,8 +64,6 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-        #print("step")
-        self.newMoveFlag = True
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -72,13 +72,26 @@ class Snekgame(gym.Env):
             self.move = 'up' 
         if action == 3:
             self.move = 'down' 
+        
+        badMove = False
+        if self.move not in self.currSaveMoves and len(self.currSaveMoves) > 0:
+            self.move = random.choice(self.currSaveMoves)
+            badMove = True
+            
+        #Let other thread know a new move is avalible 
+        self.newMoveFlag = True
+
+        #Wait for new board state
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
 
         #print("step recived data")
         
         #print(self.JsonServerData["game"]["id"])
-        observation, reward = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
+
+        if badMove:
+            reward = self.diedOnWallReward
 
         #Reset Flag
         self.newJsonDataFlag = False
@@ -90,7 +103,6 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
-        #print("reset")
         waitStartTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
@@ -99,7 +111,7 @@ class Snekgame(gym.Env):
                 waitStartTime = time.time()
         self.gameOverFlag = False
         self.newJsonDataFlag = False
-        observation , reward = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
         #print("reset recived data")
         return observation
 
@@ -128,7 +140,8 @@ class Snekgame(gym.Env):
             rewardSet = True
         
         board_state = np.zeros((max_board_size, max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
-        outputBoard = np.full((max_board_size*2, max_board_size*2), -1.0, dtype=np.float32)
+        outputBoard = np.full((max_board_size*2, max_board_size*2), self.noGo, dtype=np.float32)
+        centeredView = np.full((centerd_view_size, centerd_view_size), self.noGo, dtype=np.float32)
         
         # Fill wall locations
         for row in range(0, board["height"]):
@@ -193,17 +206,31 @@ class Snekgame(gym.Env):
         if head_y < 0:
             head_y = 0
         outputBoard[startingNum - int(head_x) : endingNum - int(head_x), startingNum - int(head_y) : endingNum - int(head_y)] = board_state
-
+        centeredView[0:int(centerd_view_size),0:int(centerd_view_size)] = outputBoard[int(max_board_size-centerd_view_size/2):int(max_board_size+centerd_view_size/2),int(max_board_size-centerd_view_size/2):int(max_board_size+centerd_view_size/2)]
         #Print the board to a diagnostic file currently not working, cuts off inside of the arrays
         #self.diag.write(np.array2string(board_state, max_line_width=10000))
 
-        boardStateFlat = np.ndarray.flatten(outputBoard)
+        boardStateFlat = np.ndarray.flatten(board_state)
+        boatCenteredFlat = np.ndarray.flatten(centeredView)
 
-        observation = np.zeros(shape=((max_board_size + max_board_size)*(max_board_size + max_board_size)+1,), dtype=np.float32)
-        observation[0:(max_board_size + max_board_size)*(max_board_size + max_board_size)] = boardStateFlat
-        observation[(max_board_size + max_board_size)*(max_board_size + max_board_size)] = currentHP
+        observation = np.zeros(shape=((max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)+1,), dtype=np.float32)
+        observation[0:(max_board_size * max_board_size)] = boardStateFlat
+        observation[(max_board_size * max_board_size):(max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)] = boatCenteredFlat
+        observation[(max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)] = currentHP
 
-        return observation, reward
+        #print(centeredView)
+
+        safeMoves = []
+        center = int(centerd_view_size/2)
+        if centeredView[center + 1][center] == self.empty or centeredView[center + 1][center] == self.food:
+            safeMoves.append('right')
+        if centeredView[center - 1][center] == self.empty or centeredView[center - 1][center] == self.food:
+            safeMoves.append('left')
+        if centeredView[center][center + 1] == self.empty or centeredView[center][center + 1] == self.food:
+            safeMoves.append('down')
+        if centeredView[center][center - 1] == self.empty or centeredView[center][center - 1] == self.food:
+            safeMoves.append('up')
+        return observation, reward, safeMoves
 
     def endEnvi(self, win):
         self.winFlag = win
@@ -215,8 +242,8 @@ class Snekgame(gym.Env):
 
     def getMove(self):
         if self.newMoveFlag:
-            return self.move
             self.newMoveFlag = False
+            return self.move
         else:
             return None
 
@@ -366,10 +393,10 @@ class Snekgame(gym.Env):
 
     def train_not_hit_walls(self):
         ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = 5
-        self.eatReward          = 5
+        self.dieReward          = -50
+        self.didNothingReward   = 10
+        self.eatReward          = 10
         self.killReward         = 1
         self.winReward          = 250
-        self.diedOnWallReward   = -150
+        self.diedOnWallReward   = -25
         ## Reward definitions
