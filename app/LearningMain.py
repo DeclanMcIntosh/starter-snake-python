@@ -51,22 +51,22 @@ def startLearning(Env):
     memory = SequentialMemory(limit=90000, window_length=1)
     policy = BoltzmannQPolicy()
     #policy = EpsGreedyQPolicy(eps=0.05)
-    dqn = SARSAAgent(model=model, nb_actions=nb_actions, policy=policy, nb_steps_warmup=1000, gamma=0.7)
-    #dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
+    #dqn = SARSAAgent(model=model, nb_actions=nb_actions, policy=policy, nb_steps_warmup=1000, gamma=0.7)
+    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
-    #dqn.load_weights("dqn_SNEK_BETA_NO_HIT_WALLS_weights_11_.h5f")
+    dqn.load_weights("dqn_SNEK_BETA_NO_HIT_WALLS_weights_13_.h5f")
 
     #Load Previous training 
 
     #Start traing
     # Ctrl + C.
     # We train and store 
-    counter = 1
+    counter = 14
     while True:
         print("started fitting")
         dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
-        dqn.save_weights('SARSA_SNEK_BETA.1_NO_HIT_WALLS_weights_' + str(counter) + '_.h5f', overwrite=True)
+        dqn.save_weights('dqn_SNEK_BETA_NO_HIT_WALLS_weights_' + str(counter) + '_.h5f', overwrite=True)
         counter+=1
 
         # Finally, evaluate our algorithm for 5 episodes.

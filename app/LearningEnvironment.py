@@ -91,7 +91,7 @@ class Snekgame(gym.Env):
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
 
         if badMove:
-            reward = self.diedOnWallReward
+            reward = -10
 
         #Reset Flag
         self.newJsonDataFlag = False
@@ -389,10 +389,10 @@ class Snekgame(gym.Env):
 
     def train_not_hit_walls(self):
         ## Reward definitions
-        self.dieReward          = -50
-        self.didNothingReward   = 10
-        self.eatReward          = 10
+        self.dieReward          = -75
+        self.didNothingReward   = 1
+        self.eatReward          = 1
         self.killReward         = 1
         self.winReward          = 250
-        self.diedOnWallReward   = -25
+        self.diedOnWallReward   = -75
         ## Reward definitions
