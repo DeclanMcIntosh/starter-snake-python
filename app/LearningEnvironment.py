@@ -168,6 +168,44 @@ class Snekgame(gym.Env):
             # else:
             #     raise ValueError('Food occurred in place where something already exists!')
 
+        # Hold simple boolean flags on whether there is danger or food to the snake head's 
+        # left, right, up, or down
+        # Ordering of proximity_flags: [no-go Up, no-go Down, no-go Left, no-go Right, 
+        #                               food Up, food Down, food Left, food Right]
+        proximity_flags = np.zeros(8)
+
+        # Calculate flags for up direction
+        if (head_x - 1) < 0 or (head_y < 0 and head_y >= self.max_board_size):
+            # If up is out of bounds
+            proximity_flags[0] = self.noGo
+            proximity_flags[4] = self.empty
+        else:
+            proximity_flags[0] = (board_state[head_x-1, head_y] > 0) + 0
+            proximity_flags[4] = (board_state[head_x-1, head_y] == self.food) + 0
+
+        if head_x >= 0 and head_x < self.max_board_size:
+            if :
+                
+
+                # Calculate flags for down direction
+                proximity_flags[1] = self.noGo \
+                    if (head_x + 1) >= self.max_board_size \
+                        else (board_state[head_x+1, head_y] > 0) + 0
+                proximity_flags[5] = self.empty \
+                    if (head_x + 1) >= self.max_board_size
+
+                # board_state[body_x,body_y] = \
+                    # self.bodyNorth if (body_x > body_prev_x) else self.bodySouth
+            else: 
+
+        else:
+            if head_y >= 0 and head_y < self.max_board_size:
+
+            else: 
+                
+
+        
+
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
@@ -387,5 +425,5 @@ class Snekgame(gym.Env):
         self.eatReward          = 5
         self.killReward         = 5
         self.winReward          = 250
-        self.diedOnWallReward   = -100
+        self.diedOnWallReward   = -75
         ## Reward definitions
