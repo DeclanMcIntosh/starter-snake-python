@@ -18,7 +18,7 @@ from rl.memory import SequentialMemory
 
 def startLearning(Env, max_board_size):
     # Get the environment and extract the number of actions.
-    load_file_number = 1 #-1 loads no starting file
+    load_file_number = -1 #-1 loads no starting file
     # Set used GPU 
     environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -93,7 +93,7 @@ def startLearning(Env, max_board_size):
     # even the metrics!
     memory = SequentialMemory(limit=80000, window_length=1)
     policy = BoltzmannQPolicy()
-    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
+    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True, batch_size=64)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
     if load_file_number >= 0:
@@ -107,7 +107,7 @@ def startLearning(Env, max_board_size):
     # We train and store 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)
+        dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
         counter+=1
         saveFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)

@@ -15,8 +15,8 @@ def snakeConfigMaker():
     foodAmount = random.randint(1, size*2)
 
     #randomize snakes: shuffle snakes and take eight of them, always including the base snake
-    allSnakes = ["http://96.54.234.28:80", "http://96.54.234.28:81", "http://96.54.234.28:82", "http://96.54.234.28:83", "http://96.54.234.28:84", 
-                 "http://96.54.234.28:85", "http://96.54.234.28:86", "http://96.54.234.28:87", "http://96.54.234.28:88", "http://96.54.234.28:89", ]
+    allSnakes = ["http://192.168.0.10:80", "http://192.168.0.10:81", "http://192.168.0.10:82", "http://192.168.0.10:83", "http://192.168.0.10:84", 
+                 "http://192.168.0.10:85", "http://192.168.0.10:86", "http://192.168.0.10:87", "http://192.168.0.10:88", "http://192.168.0.10:89", ]
     random.shuffle(allSnakes)
     playingSnakes = allSnakes[0:random.randint(1,8)]
 
@@ -56,7 +56,7 @@ def snakeConfigMakerNoHitWalls():
     foodAmount = random.randint(1, size*2)
 
     #only using base snake
-    snake = "http://96.54.234.28:80"
+    snake = "http://192.168.0.10:80"
 
     #generate json data
     data = {}
