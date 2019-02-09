@@ -64,7 +64,6 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-        print("got action for step")
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -83,10 +82,8 @@ class Snekgame(gym.Env):
         self.newMoveFlag = True
 
         #Wait for new board state
-        print("waiting for new board state")
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-        print("got new board state")
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
 
 
@@ -103,14 +100,12 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
-        print("got new board state reset")
+        self.newMoveFlag = True
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-        print("got new board state reset")
         self.gameOverFlag = False
         self.newJsonDataFlag = False
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
-        print("got observation")
         return observation
 
     def findObservation(self, data):

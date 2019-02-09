@@ -57,10 +57,8 @@ def move():
     data = bottle.request.json
     envi.sendNewData(data)
     move = envi.getMove()
-    print("waiting for move")
     while move == None:
         move = envi.getMove()   
-    print("got move")
     return move_response(move)
 
 
