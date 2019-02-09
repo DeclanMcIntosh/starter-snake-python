@@ -68,7 +68,7 @@ def end():
     #print("end message recived")
     data = bottle.request.json
     if len(data['board']['snakes']) == 0:
-        envi.endEnvi(win=False) #should this be False?
+        envi.endEnvi(win=False) #TODO change to True when training with multiple snakes
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
