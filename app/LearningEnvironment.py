@@ -1,6 +1,7 @@
 import numpy as np
 import json
-import glob, os
+import glob
+import os
 from random import randint, choice
 import time
 
@@ -90,6 +91,7 @@ class Snekgame(gym.Env):
 
         if badMove:
             reward = -10
+            badMove = False
 
         #Reset Flag
         self.newJsonDataFlag = False
@@ -179,14 +181,13 @@ class Snekgame(gym.Env):
 
         #Check if the game has been won or lost, and adjust reward accordingly.
         #This only adds to the turns reward as if you killed someone it might be worth.
-        if self.gameOverFlag == True:
-            if self.winFlag == True:
+        if self.gameOverFlag:
+            if self.winFlag:
                 reward += self.winReward
-            else: 
-                if diedOnWallFlag:
-                    reward += self.diedOnWallReward
-                else:
-                    reward += self.dieReward 
+            else if diedOnWallFlag:
+                reward += self.diedOnWallReward
+            else:
+                reward += self.dieReward 
 
         #Flatten the output and place in a current hp value
         #Place centered
@@ -233,8 +234,7 @@ class Snekgame(gym.Env):
         if self.newMoveFlag:
             self.newMoveFlag = False
             return self.move
-        else:
-            return None
+        return None
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
         wallDeathFlag = False
