@@ -56,6 +56,7 @@ class Snekgame(gym.Env):
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + 5,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
+
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
         self.np_random, seed = seeding.np_random(seed)
@@ -83,13 +84,11 @@ class Snekgame(gym.Env):
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
 
-        #print("step recived data")
-        
-        #print(self.JsonServerData["game"]["id"])
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
 
+
         if badMove:
-            reward = -10
+            reward = 0
 
         #Reset Flag
         self.newJsonDataFlag = False
@@ -385,10 +384,10 @@ class Snekgame(gym.Env):
 
     def train_not_hit_walls(self):
         ## Reward definitions
-        self.dieReward          = -75
+        self.dieReward          = -100
         self.didNothingReward   = 1
         self.eatReward          = 1
-        self.killReward         = 1
+        self.killReward         = 5
         self.winReward          = 250
-        self.diedOnWallReward   = -75
+        self.diedOnWallReward   = -100
         ## Reward definitions

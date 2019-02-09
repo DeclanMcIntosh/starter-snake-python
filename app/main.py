@@ -58,8 +58,7 @@ def move():
     envi.sendNewData(data)
     move = envi.getMove()
     while move == None:
-        move = envi.getMove()
-    #print("Got move from environemnt")    
+        move = envi.getMove()   
     return move_response(move)
 
 

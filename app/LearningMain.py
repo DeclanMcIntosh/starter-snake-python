@@ -2,6 +2,8 @@ import numpy as np
 import gym
 from os import environ
 
+import numpy as np
+
 from keras.utils import multi_gpu_model
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
@@ -16,7 +18,7 @@ from rl.memory import SequentialMemory
 
 def startLearning(Env, max_board_size):
     # Get the environment and extract the number of actions.
-    load_file_number = -1
+    load_file_number = 1 #-1 loads no starting file
     # Set used GPU 
     environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -30,6 +32,7 @@ def startLearning(Env, max_board_size):
     layer2Size = 0
     layer3Size = 0
     layer4Size = 0
+    layer5Size = 0
 
     # Init size based on max_board_size
     if max_board_size not in [11, 7, 19]:
@@ -40,24 +43,27 @@ def startLearning(Env, max_board_size):
         layer0Size = 64
         layer1Size = 64
         layer2Size = 32
-        layer3Size = 16
+        layer3Size = 32
         layer4Size = 16
+        layer5Size = 16
 
     # 121 + 5 inputs
     if max_board_size == 11:
         layer0Size = 128
         layer1Size = 64
-        layer2Size = 32
+        layer2Size = 64
         layer3Size = 32
-        layer4Size = 16
+        layer4Size = 32
+        layer5Size = 16
 
     # 361 + 5 inputs
     if max_board_size == 19:
-        layer0Size = 128
+        layer0Size = 256
         layer1Size = 128
         layer2Size = 64
-        layer3Size = 32
-        layer4Size = 16
+        layer3Size = 64
+        layer4Size = 32
+        layer5Size = 16
 
     # Next, we build a very simple model. 
     model = Sequential()
@@ -72,6 +78,8 @@ def startLearning(Env, max_board_size):
     model.add(Activation('relu'))
     model.add(Dense(layer4Size))
     model.add(Activation('relu'))
+    model.add(Dense(layer5Size))
+    model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
@@ -83,13 +91,13 @@ def startLearning(Env, max_board_size):
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=90000, window_length=1)
+    memory = SequentialMemory(limit=80000, window_length=1)
     policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
     if load_file_number >= 0:
-        loadFile = "DQN_LAYERS_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+        loadFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
         dqn.load_weights(loadFile)
 
     #Load Previous training 
@@ -99,11 +107,9 @@ def startLearning(Env, max_board_size):
     # We train and store 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
+        dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)
         counter+=1
-        saveFile = "DQN_LAYERS_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
+        saveFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
 
 
-        # Finally, evaluate our algorithm for 5 episodes.
-        # dqn.test(env, nb_episodes=15, visualize=False)
