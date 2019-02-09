@@ -16,13 +16,17 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env, max_board_size=7, loadFileNumber=None):
+def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None):
     # Get the environment and extract the number of actions.
     if loadFileNumber != None:
-        load_file_number = -1 #-1 loads no starting file
+        load_file_number = loadFileNumber #-1 loads no starting file
+    else:
+        load_file_number = -1
     # Set used GPU 
-    environ["CUDA_VISIBLE_DEVICES"]="0"
-
+    if gpuToUse != None:
+        environ["CUDA_VISIBLE_DEVICES"]=gpuToUse
+    else:
+        environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
     env = Env
@@ -108,9 +112,11 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None):
     # We train and store 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
+        print("started training a new set")
+        dqn.fit(env, nb_steps=1000, visualize=False, verbose=1)
         counter+=1
         saveFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
+        "saved file"
 
 

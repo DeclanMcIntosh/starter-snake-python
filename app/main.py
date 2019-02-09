@@ -57,8 +57,10 @@ def move():
     data = bottle.request.json
     envi.sendNewData(data)
     move = envi.getMove()
+    print("waiting for move")
     while move == None:
         move = envi.getMove()   
+    print("got move")
     return move_response(move)
 
 
@@ -85,4 +87,4 @@ if __name__ == '__main__':
         quiet=True
         )
     ).start()
-    startLearning(envi, max_board_size=sizeType)
+    startLearning(envi, max_board_size=sizeType, loadFileNumber=1)
