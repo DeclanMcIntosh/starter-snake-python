@@ -68,7 +68,7 @@ def end():
     #print("end message recived")
     data = bottle.request.json
     if len(data['board']['snakes']) == 0:
-        envi.endEnvi(win=False)
+        envi.endEnvi(win=False) #should this be False?
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
