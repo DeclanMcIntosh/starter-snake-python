@@ -16,9 +16,10 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env, max_board_size):
+def startLearning(Env, max_board_size=7, loadFileNumber=None):
     # Get the environment and extract the number of actions.
-    load_file_number = -1 #-1 loads no starting file
+    if loadFileNumber != None:
+        load_file_number = -1 #-1 loads no starting file
     # Set used GPU 
     environ["CUDA_VISIBLE_DEVICES"]="0"
 
@@ -93,7 +94,7 @@ def startLearning(Env, max_board_size):
     # even the metrics!
     memory = SequentialMemory(limit=80000, window_length=1)
     policy = BoltzmannQPolicy()
-    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True, batch_size=64)
+    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
     if load_file_number >= 0:

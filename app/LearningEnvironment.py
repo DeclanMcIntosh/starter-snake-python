@@ -202,19 +202,19 @@ class Snekgame(gym.Env):
 
         safeMoves = []
         if  head_x < self.max_board_size - 1 and head_y < self.max_board_size:
-            if board_state[head_x + 1, head_y] == self.empty or board_state[head_x + 1,head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y):
+            if board_state[head_x + 1, head_y] == self.empty or board_state[head_x + 1,head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y and len(data["you"]["body"]) > 3):
                 safeMoves.append('right')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1,head_y]            
         if head_x > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x - 1,head_y] == self.empty or board_state[head_x - 1,head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y):
+            if board_state[head_x - 1,head_y] == self.empty or board_state[head_x - 1,head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y and len(data["you"]["body"]) > 3):
                 safeMoves.append('left')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1,head_y]
         if head_y < self.max_board_size - 1 and head_x < self.max_board_size:        
-            if board_state[head_x,head_y + 1] == self.empty or board_state[head_x,head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y):
+            if board_state[head_x,head_y + 1] == self.empty or board_state[head_x,head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y and len(data["you"]["body"]) > 3):
                 safeMoves.append('down')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y + 1]
         if  head_y > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x,head_y - 1] == self.empty or board_state[head_x,head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y):
+            if board_state[head_x,head_y - 1] == self.empty or board_state[head_x,head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y and len(data["you"]["body"]) > 3):
                 safeMoves.append('up')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y - 1]
 
