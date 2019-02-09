@@ -86,4 +86,4 @@ if __name__ == '__main__':
         quiet=True
         )
     ).start()
-    startLearning(envi)
+    startLearning(envi, max_board_size=sizeType)

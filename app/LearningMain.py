@@ -1,5 +1,6 @@
 import numpy as np
 import gym
+from os import environ
 
 from keras.utils import multi_gpu_model
 from keras.models import Sequential
@@ -16,6 +17,11 @@ from rl.memory import SequentialMemory
 def startLearning(Env, max_board_size):
     # Get the environment and extract the number of actions.
     load_file_number = -1
+    # Set used GPU 
+    environ["CUDA_VISIBLE_DEVICES"]="0"
+
+
+
     env = Env
     nb_actions = env.action_space.n
 
@@ -69,10 +75,7 @@ def startLearning(Env, max_board_size):
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
-    try: 
-        multi_gpu_model(model=model)
-    except:
-        pass
+
 
 
     #A little diagnosis of the model summary
@@ -80,7 +83,7 @@ def startLearning(Env, max_board_size):
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=20000, window_length=1)
+    memory = SequentialMemory(limit=90000, window_length=1)
     policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 

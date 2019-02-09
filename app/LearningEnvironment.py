@@ -160,7 +160,7 @@ class Snekgame(gym.Env):
             self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
 
         # Fill our snake body segment locations
-        diedOnWallFlag, head_x, head_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
+        diedOnWallFlag, head_x, head_y, tail_x, tail_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
 
         # Fill food locations
         for xy_pair in board["food"]:
@@ -202,20 +202,20 @@ class Snekgame(gym.Env):
         observation[(self.max_board_size * self.max_board_size)] = currentHP
 
         safeMoves = []
-        if  head_x != self.max_board_size:
-            if board_state[head_x + 1][head_y] == self.empty or board_state[head_x + 1][head_y] == self.food:
+        if  head_x < self.max_board_size - 1 and head_y < self.max_board_size:
+            if board_state[head_x + 1][head_y] == self.empty or board_state[head_x + 1][head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y):
                 safeMoves.append('right')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1][head_y]            
-        if head_x != 0:
-            if board_state[head_x - 1][head_y] == self.empty or board_state[head_x - 1][head_y] == self.food:
+        if head_x > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
+            if board_state[head_x - 1][head_y] == self.empty or board_state[head_x - 1][head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y):
                 safeMoves.append('left')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1][head_y]
-        if head_y != self.max_board_size:        
-            if board_state[head_x][head_y + 1] == self.empty or board_state[head_x][head_y + 1] == self.food:
+        if head_y < self.max_board_size - 1 and head_x < self.max_board_size:        
+            if board_state[head_x][head_y + 1] == self.empty or board_state[head_x][head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y):
                 safeMoves.append('down')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y + 1]
-        if  head_y != 0:
-            if board_state[head_x][head_y - 1] == self.empty or board_state[head_x][head_y - 1] == self.food:
+        if  head_y > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
+            if board_state[head_x][head_y - 1] == self.empty or board_state[head_x][head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y):
                 safeMoves.append('up')
             observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y - 1]
 
@@ -238,6 +238,8 @@ class Snekgame(gym.Env):
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
         wallDeathFlag = False
+        body_x = 0
+        body_y = 0
         if (len(whole_snake["body"]) == 0):
             return None
 
@@ -277,10 +279,10 @@ class Snekgame(gym.Env):
             body_prev_y = body_y
 
         # encode head position
-        if head_location["x"] < 0 or head_location["x"] >= self.max_board_size or head_location["y"] < 0 or head_location["y"] >= self.max_board_size:
+        if head_location["x"] > 0 and head_location["x"] < self.max_board_size and head_location["y"] > 0 and head_location["y"] < self.max_board_size:
             board_state[head_location["x"], head_location["y"]] = head_val
 
-        return wallDeathFlag, head_location["x"], head_location["y"]
+        return wallDeathFlag, head_location["x"], head_location["y"], body_x, body_y
 
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
