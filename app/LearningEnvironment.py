@@ -1,22 +1,20 @@
 import numpy as np
 import json
 import glob, os
-from random import randint
+from random import randint, choice
 import time
-from cheekyRunGamesScript import *
 
 import gym
 from gym import spaces
 from gym.utils import seeding
 
-max_board_size = 20 # must be even
-centerd_view_size = 10 # must be even
 max_health = 100
 
 class Snekgame(gym.Env):
     '''Snek environment for snek game snek
     '''
-    def __init__(self):
+    def __init__(self, max_board_size=7):
+        self.max_board_size=max_board_size
         #Diagnostic File
         self.diag = open("diagnostic.txt", "a+")
         #Snake Decided Moved
@@ -56,7 +54,7 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=((max_board_size * max_board_size) + (centerd_view_size * centerd_view_size) + 1,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + 5,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -75,7 +73,7 @@ class Snekgame(gym.Env):
         
         badMove = False
         if self.move not in self.currSaveMoves and len(self.currSaveMoves) > 0:
-            self.move = random.choice(self.currSaveMoves)
+            self.move = choice(self.currSaveMoves)
             badMove = True
             
         #Let other thread know a new move is avalible 
@@ -108,7 +106,6 @@ class Snekgame(gym.Env):
         self.gameOverFlag = False
         self.newJsonDataFlag = False
         observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
-        #print("reset recived data")
         return observation
 
     def findObservation(self, data):
@@ -135,17 +132,15 @@ class Snekgame(gym.Env):
             reward = self.killReward
             rewardSet = True
         
-        board_state = np.zeros((max_board_size, max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
-        outputBoard = np.full((max_board_size*2, max_board_size*2), self.noGo, dtype=np.float32)
-        centeredView = np.full((centerd_view_size, centerd_view_size), self.noGo, dtype=np.float32)
+        board_state = np.zeros((self.max_board_size, self.max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
         
         # Fill wall locations
         for row in range(0, board["height"]):
-            for col in range(board["width"], max_board_size):
+            for col in range(board["width"], self.max_board_size):
                 board_state[row,col] = self.noGo
 
-        for row in range(board["height"], max_board_size):
-            for col in range(0, max_board_size):
+        for row in range(board["height"], self.max_board_size):
+            for col in range(0, self.max_board_size):
                 board_state[row,col] = self.noGo
 
         # Fill enemy snake body segment locations
@@ -195,37 +190,35 @@ class Snekgame(gym.Env):
 
         #Flatten the output and place in a current hp value
         #Place centered
-        startingNum = int(max_board_size)
-        endingNum = int(max_board_size + max_board_size)
         if head_x < 0:
             head_x = 0
         if head_y < 0:
             head_y = 0
-        outputBoard[startingNum - int(head_x) : endingNum - int(head_x), startingNum - int(head_y) : endingNum - int(head_y)] = board_state
-        centeredView[0:int(centerd_view_size),0:int(centerd_view_size)] = outputBoard[int(max_board_size-centerd_view_size/2):int(max_board_size+centerd_view_size/2),int(max_board_size-centerd_view_size/2):int(max_board_size+centerd_view_size/2)]
-        #Print the board to a diagnostic file currently not working, cuts off inside of the arrays
-        #self.diag.write(np.array2string(board_state, max_line_width=10000))
 
         boardStateFlat = np.ndarray.flatten(board_state)
-        boatCenteredFlat = np.ndarray.flatten(centeredView)
 
-        observation = np.zeros(shape=((max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)+1,), dtype=np.float32)
-        observation[0:(max_board_size * max_board_size)] = boardStateFlat
-        observation[(max_board_size * max_board_size):(max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)] = boatCenteredFlat
-        observation[(max_board_size * max_board_size)+(centerd_view_size * centerd_view_size)] = currentHP
-
-        #print(centeredView)
+        observation = np.full(shape=((self.max_board_size * self.max_board_size) + 5,), fill_value=self.noGo, dtype=np.float32)
+        observation[0:(self.max_board_size * self.max_board_size)] = boardStateFlat
+        observation[(self.max_board_size * self.max_board_size)] = currentHP
 
         safeMoves = []
-        center = int(centerd_view_size/2)
-        if centeredView[center + 1][center] == self.empty or centeredView[center + 1][center] == self.food:
-            safeMoves.append('right')
-        if centeredView[center - 1][center] == self.empty or centeredView[center - 1][center] == self.food:
-            safeMoves.append('left')
-        if centeredView[center][center + 1] == self.empty or centeredView[center][center + 1] == self.food:
-            safeMoves.append('down')
-        if centeredView[center][center - 1] == self.empty or centeredView[center][center - 1] == self.food:
-            safeMoves.append('up')
+        if  head_x != self.max_board_size:
+            if board_state[head_x + 1][head_y] == self.empty or board_state[head_x + 1][head_y] == self.food:
+                safeMoves.append('right')
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1][head_y]            
+        if head_x != 0:
+            if board_state[head_x - 1][head_y] == self.empty or board_state[head_x - 1][head_y] == self.food:
+                safeMoves.append('left')
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1][head_y]
+        if head_y != self.max_board_size:        
+            if board_state[head_x][head_y + 1] == self.empty or board_state[head_x][head_y + 1] == self.food:
+                safeMoves.append('down')
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y + 1]
+        if  head_y != 0:
+            if board_state[head_x][head_y - 1] == self.empty or board_state[head_x][head_y - 1] == self.food:
+                safeMoves.append('up')
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y - 1]
+
         return observation, reward, safeMoves
 
     def endEnvi(self, win):
@@ -252,7 +245,7 @@ class Snekgame(gym.Env):
         head_location = whole_snake["body"][0]
         body_prev_x = head_location["x"]
         body_prev_y = head_location["y"]
-        if head_location["x"] < 0 or board_state[head_location["x"]][0] == -1 or head_location["y"] < 0 or board_state[0][head_location["y"]] == -1:
+        if head_location["x"] < 0 or head_location["x"] >= self.max_board_size or head_location["y"] < 0 or head_location["y"] >= self.max_board_size:
                 wallDeathFlag = True
 
         # encode rest of body into board, where each body segment points to 
@@ -284,7 +277,8 @@ class Snekgame(gym.Env):
             body_prev_y = body_y
 
         # encode head position
-        board_state[head_location["x"], head_location["y"]] = head_val
+        if head_location["x"] < 0 or head_location["x"] >= self.max_board_size or head_location["y"] < 0 or head_location["y"] >= self.max_board_size:
+            board_state[head_location["x"], head_location["y"]] = head_val
 
         return wallDeathFlag, head_location["x"], head_location["y"]
 

@@ -6,13 +6,18 @@ import threading
 import time
 from LearningEnvironment import *
 from LearningMain import *
-from cheekyRunGamesScript import *
 
 from api import ping_response, start_response, move_response, end_response
 
-envi =  Snekgame()
+#Flags for what kind of network we are training
+sizeType = 7
+
+
+envi = Snekgame(max_board_size=sizeType)
 envi.train_not_hit_walls()
 startTime = time.time()
+
+
 
 @bottle.route('/')
 def index():
@@ -42,7 +47,6 @@ def ping():
 def start():
     #print("start request recived")
     color = "#00FF00"
-    startTime = time.time()
     return start_response(color)
 
 
@@ -64,16 +68,10 @@ def end():
     #print("end message recived")
     data = bottle.request.json
     if len(data['board']['snakes']) == 0:
-        # For collision avoidance with one snake running right now we alwuas return fail
         envi.endEnvi(win=False)
-        #envi.endEnvi(win=True)
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
-    #sleepTime = 15 - time.time() + startTime
-    #if sleepTime > 0:
-    #    sleep(sleepTime)
-    #runAGameForNoCollisionTraining()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)

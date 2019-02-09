@@ -1,6 +1,7 @@
 import numpy as np
 import gym
 
+from keras.utils import multi_gpu_model
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.optimizers import Adam, nadam
@@ -12,35 +13,66 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env):
+def startLearning(Env, max_board_size):
     # Get the environment and extract the number of actions.
-    env = Env #gym.make(ENV_NAME) 
+    load_file_number = -1
+    env = Env
     nb_actions = env.action_space.n
+
+    layer0Size = 0
+    layer1Size = 0
+    layer2Size = 0
+    layer3Size = 0
+    layer4Size = 0
+
+    # Init size based on max_board_size
+    if max_board_size not in [11, 7, 19]:
+        raise EnvironmentError
+
+    # 49 + 5 inputs
+    if max_board_size == 7:
+        layer0Size = 64
+        layer1Size = 64
+        layer2Size = 32
+        layer3Size = 16
+        layer4Size = 16
+
+    # 121 + 5 inputs
+    if max_board_size == 11:
+        layer0Size = 128
+        layer1Size = 64
+        layer2Size = 32
+        layer3Size = 32
+        layer4Size = 16
+
+    # 361 + 5 inputs
+    if max_board_size == 19:
+        layer0Size = 128
+        layer1Size = 128
+        layer2Size = 64
+        layer3Size = 32
+        layer4Size = 16
 
     # Next, we build a very simple model. 
     model = Sequential()
-    model.add(Flatten(input_shape=(1,) + env.observation_space.shape)) 
-    #model.add(Dense(512))
-    #model.add(Activation('relu'))
-    model.add(Dense(256))
+    model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
+    model.add(Dense(layer0Size))
     model.add(Activation('relu'))
-    #model.add(Dense(256))
-    #model.add(Activation('relu'))
-    #model.add(Dense(128))
-    #model.add(Activation('relu'))
-    model.add(Dense(128))
+    model.add(Dense(layer1Size))
     model.add(Activation('relu'))
-    model.add(Dense(64))
+    model.add(Dense(layer2Size))
     model.add(Activation('relu'))
-    model.add(Dense(32))
+    model.add(Dense(layer3Size))
     model.add(Activation('relu'))
-    #model.add(Dense(16))
-    #model.add(Activation('relu'))
-    #model.add(Dense(16))
-    #model.add(Activation('relu'))
+    model.add(Dense(layer4Size))
+    model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
+    try: 
+        multi_gpu_model(model=model)
+    except:
+        pass
 
 
     #A little diagnosis of the model summary
@@ -48,26 +80,27 @@ def startLearning(Env):
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=90000, window_length=1)
+    memory = SequentialMemory(limit=20000, window_length=1)
     policy = BoltzmannQPolicy()
-    #policy = EpsGreedyQPolicy(eps=0.05)
-    #dqn = SARSAAgent(model=model, nb_actions=nb_actions, policy=policy, nb_steps_warmup=1000, gamma=0.7)
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
-    dqn.load_weights("dqn_SNEK_BETA_NO_HIT_WALLS_weights_13_.h5f")
+    if load_file_number >= 0:
+        loadFile = "DQN_LAYERS_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+        dqn.load_weights(loadFile)
 
     #Load Previous training 
 
     #Start traing
     # Ctrl + C.
     # We train and store 
-    counter = 14
+    counter = 0
     while True:
-        print("started fitting")
         dqn.fit(env, nb_steps=25000, visualize=False, verbose=1)
-        dqn.save_weights('dqn_SNEK_BETA_NO_HIT_WALLS_weights_' + str(counter) + '_.h5f', overwrite=True)
         counter+=1
+        saveFile = "DQN_LAYERS_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_" + str(layer0Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
+        dqn.save_weights(saveFile, overwrite=True)
+
 
         # Finally, evaluate our algorithm for 5 episodes.
-        #dqn.test(env, nb_episodes=15, visualize=False)
+        # dqn.test(env, nb_episodes=15, visualize=False)
