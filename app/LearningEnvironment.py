@@ -1,6 +1,7 @@
 import numpy as np
 import json
-import glob, os
+import glob
+import os
 from random import randint, choice
 import time
 
@@ -178,14 +179,13 @@ class Snekgame(gym.Env):
 
         #Check if the game has been won or lost, and adjust reward accordingly.
         #This only adds to the turns reward as if you killed someone it might be worth.
-        if self.gameOverFlag == True:
-            if self.winFlag == True:
+        if self.gameOverFlag:
+            if self.winFlag:
                 reward += self.winReward
-            else: 
-                if diedOnWallFlag:
-                    reward += self.diedOnWallReward
-                else:
-                    reward += self.dieReward 
+            else if diedOnWallFlag:
+                reward += self.diedOnWallReward
+            else:
+                reward += self.dieReward 
 
         #Flatten the output and place in a current hp value
         #Place centered
@@ -202,21 +202,21 @@ class Snekgame(gym.Env):
 
         safeMoves = []
         if  head_x < self.max_board_size - 1 and head_y < self.max_board_size:
-            if board_state[head_x + 1][head_y] == self.empty or board_state[head_x + 1][head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y):
+            if board_state[head_x + 1, head_y] == self.empty or board_state[head_x + 1,head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y):
                 safeMoves.append('right')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1][head_y]            
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1,head_y]            
         if head_x > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x - 1][head_y] == self.empty or board_state[head_x - 1][head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y):
+            if board_state[head_x - 1,head_y] == self.empty or board_state[head_x - 1,head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y):
                 safeMoves.append('left')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1][head_y]
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1,head_y]
         if head_y < self.max_board_size - 1 and head_x < self.max_board_size:        
-            if board_state[head_x][head_y + 1] == self.empty or board_state[head_x][head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y):
+            if board_state[head_x,head_y + 1] == self.empty or board_state[head_x,head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y):
                 safeMoves.append('down')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y + 1]
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y + 1]
         if  head_y > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x][head_y - 1] == self.empty or board_state[head_x][head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y):
+            if board_state[head_x,head_y - 1] == self.empty or board_state[head_x,head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y):
                 safeMoves.append('up')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x][head_y - 1]
+            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y - 1]
 
         return observation, reward, safeMoves
 
@@ -232,8 +232,7 @@ class Snekgame(gym.Env):
         if self.newMoveFlag:
             self.newMoveFlag = False
             return self.move
-        else:
-            return None
+        return None
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
         wallDeathFlag = False
