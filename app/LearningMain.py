@@ -4,7 +4,6 @@ from os import environ
 
 import numpy as np
 
-from keras.utils import multi_gpu_model
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.optimizers import Adam, nadam
@@ -16,7 +15,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=80000):
+def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=800000):
     # Get the environment and extract the number of actions.
     if loadFileNumber != None:
         load_file_number = loadFileNumber #-1 loads no starting file
@@ -110,7 +109,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     #Start traing
     # Ctrl + C.
     # We train and store 
-    
+
     counter = 0
     while True:
         dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)

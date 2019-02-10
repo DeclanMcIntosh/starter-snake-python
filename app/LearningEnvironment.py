@@ -25,6 +25,7 @@ class Snekgame(gym.Env):
         self.newMoveFlag = False
         self.gameOverFlag = False
         self.currSafeMoves = []
+        self.winFlag = False
         #Snake Decided Moved
 
         # Initialize reward values
@@ -85,9 +86,6 @@ class Snekgame(gym.Env):
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
             badMove = True
-        print(" ")
-        print(self.currSafeMoves)
-        print("Move: " + self.move)
 
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
@@ -107,6 +105,7 @@ class Snekgame(gym.Env):
     def reset(self):
         self.winFlag = False
         self.gameOverFlag = False
+        self.newMoveFlag = True
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
         self.newJsonDataFlag = False
@@ -248,10 +247,11 @@ class Snekgame(gym.Env):
         if self.gameOverFlag:
             if self.winFlag :
                 reward += self.winReward
-            elif diedOnWallFlag:
-                reward += self.diedOnWallReward
-            else:
-                reward += self.dieReward 
+        
+        if self.checkIfDied(data):
+            reward += self.dieReward
+            self.gameOverFlag = True
+        
 
         #Flatten the output and place in a current hp value
         #Place centered
@@ -329,6 +329,25 @@ class Snekgame(gym.Env):
             board_state[head_location["x"], head_location["y"]] = head_val
 
         return wallDeathFlag, head_location["x"], head_location["y"], body_x, body_y
+
+    def checkIfDied(self, data):
+        boardWidthHeight = data["board"]["height"]
+        ourHeadX = data["you"]["body"][0]["x"]
+        ourHeadY = data["you"]["body"][0]["y"]
+
+        if ourHeadX >= boardWidthHeight or ourHeadY >=boardWidthHeight:
+            return True
+        if ourHeadX < 0 or ourHeadY < 0:
+            return True
+
+        if data["you"]["health"] <= 0:
+            return True
+
+        for snakeBody in data["board"]["snakes"]:
+            if data["you"]["body"][0] in snakeBody["body"] and data["you"]["id"] != snakeBody["id"]:
+                return True
+            if data["you"]["body"][0] in snakeBody["body"][1:] and data["you"]["id"] == snakeBody["id"] :
+                return True
 
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
@@ -442,10 +461,10 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -10
-        self.didNothingReward   = -1
-        self.eatReward          = -1
+        self.dieReward          = -50
+        self.didNothingReward   = 0
+        self.eatReward          = 0
         self.killReward         = 30
         self.winReward          = 250
-        self.diedOnWallReward   = -10
+        self.diedOnWallReward   = -50
         ## Reward definitions

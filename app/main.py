@@ -59,18 +59,13 @@ def move():
     envi.sendNewData(data)
     move = None
     while move == None:
-        move = envi.getMove() 
+        move = envi.getMove()
     return move_response(move)
 
 
 @bottle.post('/end')
 def end():
-    #print("end message recived")
     data = bottle.request.json
-    if len(data['board']['snakes']) == 1:
-        envi.endEnvi(win=True)
-    else:
-        envi.endEnvi(win=False)
     envi.sendNewData(data)
     return end_response()
 

@@ -4,6 +4,7 @@ import random
 import bottle
 import threading
 import time
+
 from LearningEnvironment import *
 from trainingDummys import *
 
@@ -12,12 +13,10 @@ from api import ping_response, start_response, move_response, end_response
 #Flags for what kind of network we are training
 sizeType = 19
 
-
 envi = Snekgame(max_board_size=sizeType)
 envi.init_wholesome_pp()
-envi0 = Snekgame(max_board_size=sizeType)
-envi0.init_absolute_unit()
 
+dummy = player(envi)
 
 @bottle.route('/')
 def index():
@@ -45,7 +44,7 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    #print("start request recived")
+    data = bottle.request.json
     color = "#00FF00"
     return start_response(color)
 
@@ -53,24 +52,19 @@ def start():
 @bottle.post('/move')
 def move():
     #print("move Request recived")
-    global envi
+    global data
+    global newObservation
+    global moveChosen
+    moveChosen = None
     data = bottle.request.json
-    envi.sendNewData(data)
-    move = envi.getMove()
-    while move == None:
-        move = envi.getMove()   
-    return move_response(move)
+    sendMove = dummy.getMove(data)
+    return move_response(sendMove)
 
 
 @bottle.post('/end')
 def end():
-    #print("end message recived")
+
     data = bottle.request.json
-    if len(data['board']['snakes']) == 0:
-        envi.endEnvi(win=True)
-    else:
-        envi.endEnvi(win=False)
-    envi.sendNewData(data)
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -84,7 +78,4 @@ if __name__ == '__main__':
         debug=os.getenv('DEBUG', False),
         quiet=True
         )
-    ).start()
-    threading.Thread(target=dummyRun, kwargs=dict(
-        Env=envi, max_board_size=sizeType)
     ).start()
