@@ -162,7 +162,8 @@ class Snekgame(gym.Env):
 
             # Fill enemy snake body segment locations
             unused, enemy_head_x, enemy_head_y, enemy_tail_x, enemy_tail_y = self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
-            tails.append((enemy_tail_x, enemy_tail_y))
+            if (enemy_length != 3 or enemy_snake["body"][1] == enemy_snake["body"][2]):
+                tails.append((enemy_tail_x, enemy_tail_y))
 
         # Fill our snake body segment locations
         diedOnWallFlag, head_x, head_y, tail_x, tail_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
