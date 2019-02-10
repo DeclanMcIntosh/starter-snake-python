@@ -66,7 +66,6 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-        print('\n STEP')
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -106,7 +105,6 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
-        print('\n RESET ')
         self.winFlag = False
         self.gameOverFlag = False
         while self.newJsonDataFlag == False:
@@ -271,19 +269,16 @@ class Snekgame(gym.Env):
         return observation, reward, safeMoves
 
     def endEnvi(self, win):
-        print('\n END ENVI')
         self.winFlag = win
         self.gameOverFlag = True
 
     def sendNewData(self, data):
-        print('\n SENDNEWDATA')
         self.JsonServerData = data
         self.newJsonDataFlag = True
 
     def getMove(self):
         
         if self.newMoveFlag:
-            print('\n self.newMoveFlag==true')
             self.newMoveFlag = False
             return self.move
         return None
