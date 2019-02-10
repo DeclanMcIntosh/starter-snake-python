@@ -43,6 +43,7 @@ def ping():
 
 @bottle.post('/start')
 def start():
+    print('\n main start called')
     data = bottle.request.json
     color = "#00FF00"
     envi.sendNewData(data)
@@ -51,6 +52,7 @@ def start():
 
 @bottle.post('/move')
 def move():
+    print('\n main move called')
     #print("move Request recived")
     global envi
     data = bottle.request.json
@@ -68,6 +70,7 @@ def move():
 
 @bottle.post('/end')
 def end():
+    print('\n main end called')
     #print("end message recived")
     data = bottle.request.json
     if len(data['board']['snakes']) == 1:
