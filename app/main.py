@@ -60,7 +60,6 @@ def move():
     move = None
     while move == None:
         move = envi.getMove() 
-    print("taken move" + move) 
     return move_response(move)
 
 

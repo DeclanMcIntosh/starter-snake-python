@@ -108,7 +108,6 @@ class Snekgame(gym.Env):
         self.winFlag = False
         self.gameOverFlag = False
         while self.newJsonDataFlag == False:
-            print("test were stuck in reset")
             time.sleep(0.01)
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
