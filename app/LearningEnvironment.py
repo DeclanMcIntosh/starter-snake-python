@@ -57,7 +57,6 @@ class Snekgame(gym.Env):
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + 5,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
-
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
         self.np_random, seed = seeding.np_random(seed)

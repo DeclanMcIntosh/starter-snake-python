@@ -10,7 +10,7 @@ from trainingDummys import *
 from api import ping_response, start_response, move_response, end_response
 
 #Flags for what kind of network we are training
-sizeType = 7
+sizeType = 19
 
 
 envi = Snekgame(max_board_size=sizeType)
