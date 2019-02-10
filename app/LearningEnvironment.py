@@ -24,7 +24,7 @@ class Snekgame(gym.Env):
         self.move = 'left'
         self.newMoveFlag = False
         self.gameOverFlag = False
-        self.currSaveMoves = []
+        self.currSafeMoves = []
         #Snake Decided Moved
 
         # Initialize reward values
@@ -76,9 +76,9 @@ class Snekgame(gym.Env):
             self.move = 'down' 
         
         badMove = False
-        #if self.move not in self.currSaveMoves and len(self.currSaveMoves) > 0:
-        #    self.move = choice(self.currSaveMoves)
-        #    badMove = True
+        # if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
+        #     self.move = choice(self.currSafeMoves)
+        #     badMove = True
             
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
@@ -86,7 +86,7 @@ class Snekgame(gym.Env):
         #Wait for new board state
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-        observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
 
 
         if badMove:
@@ -108,7 +108,7 @@ class Snekgame(gym.Env):
             time.sleep(0.01)
         self.gameOverFlag = False
         self.newJsonDataFlag = False
-        observation, reward, self.currSaveMoves = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
         return observation
 
     def findObservation(self, data):
@@ -181,7 +181,6 @@ class Snekgame(gym.Env):
         proximity_flags = np.append(np.ones(4), np.zeros(4))
         # pre-make flags with no-go and no food
         safeMoves = []
-
         if (head_x >= 0 and head_x < self.max_board_size and head_y >= 0 and head_y < self.max_board_size):
             # if snek is not dead
             noGo_index = 0
@@ -190,8 +189,8 @@ class Snekgame(gym.Env):
             if (head_y - 1) >= 0:
                 board_value =  board_state[head_x, head_y - 1]
                 # if up is not a wall
-                if ((head_x == tail_x and head_y - 1 == tail_y) or \
-                    board_value == self.food or board_value == self.empty):
+                if ((head_x == tail_x and head_y - 1 == tail_y) and currentLength > 3) or \
+                    board_value == self.food or board_value == self.empty:
                     # if not our own tail or is food or is empty
                         proximity_flags[noGo_index] = self.empty
                         safeMoves.append('up')
@@ -199,11 +198,11 @@ class Snekgame(gym.Env):
                         proximity_flags[food_index] = (board_value == self.food) + 0
                 
             
-            if (head_y + 1) >= 0:
+            if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if ((head_x == tail_x and head_y + 1 == tail_y) or \
-                    board_value == self.food or board_value == self.empty):
+                if ((head_x == tail_x and head_y + 1 == tail_y) and currentLength > 3) or \
+                    board_value == self.food or board_value == self.empty:
                     # if not our own tail or is food or is empty
                         proximity_flags[noGo_index + 1] = self.empty
                         safeMoves.append('down')
@@ -213,25 +212,25 @@ class Snekgame(gym.Env):
             if (head_x - 1) >= 0:
                 board_value =  board_state[head_x - 1, head_y]
                 # if left is not a wall
-                if ((head_x - 1 == tail_x and head_y == tail_y) or \
-                    board_value == self.food or board_value == self.empty):
+                if ((head_x - 1 == tail_x and head_y == tail_y) and currentLength > 3) or \
+                    board_value == self.food or board_value == self.empty:
                     # if not our own tail or is food or is empty
                         proximity_flags[noGo_index + 2] = self.empty
                         safeMoves.append('left')
 
                         proximity_flags[food_index + 2] = (board_value == self.food) + 0
 
-            if (head_x + 1) >= 0:
+            if (head_x + 1) < self.max_board_size:
                 board_value =  board_state[head_x + 1, head_y]
                 # if right is not a wall
-                if ((head_x + 1 == tail_x and head_y == tail_y) or \
-                    board_value == self.food or board_value == self.empty):
+                if ((head_x + 1 == tail_x and head_y == tail_y) and currentLength > 3) or \
+                    board_value == self.food or board_value == self.empty:
                     # if not our own tail or is food or is empty
                         proximity_flags[noGo_index + 3] = self.empty
                         safeMoves.append('right')
 
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
-
+        
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
@@ -258,7 +257,7 @@ class Snekgame(gym.Env):
         if head_y < 0:
             head_y = 0
 
-        observation = np.full(shape=((self.max_board_size * self.max_board_size) + 5,), fill_value=self.noGo, dtype=np.float32)
+        observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
         observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
         observation[(self.max_board_size * self.max_board_size)] = currentHP
         observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
