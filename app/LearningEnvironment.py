@@ -10,6 +10,8 @@ from gym import spaces
 from gym.utils import seeding
 
 max_health = 100
+num_proximity_flags = 8
+num_health_flags = 1
 
 class Snekgame(gym.Env):
     '''Snek environment for snek game snek
@@ -55,7 +57,8 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + 5,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
+        self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + num_health_flags + \
+            num_proximity_flags,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
         #we will never use this this never gets used by the keras-rl but needs to exist.
@@ -169,6 +172,66 @@ class Snekgame(gym.Env):
             # else:
             #     raise ValueError('Food occurred in place where something already exists!')
 
+        # Hold simple boolean flags on whether there is danger or food to the snake head's 
+        # left, right, up, or down
+        # Ordering of proximity_flags: [no-go Up, no-go Down, no-go Left, no-go Right, 
+        #                               food Up, food Down, food Left, food Right]
+        # IMPORTANT: our own tail is treated as safe move
+        # TODO treat other tails as safe move
+        proximity_flags = np.append(np.ones(4), np.zeros(4))
+        # pre-make flags with no-go and no food
+        safeMoves = []
+
+        if (head_x >= 0 and head_x < self.max_board_size and head_y >= 0 and head_y < self.max_board_size):
+            # if snek is not dead
+            noGo_index = 0
+            food_index = 4
+
+            if (head_y - 1) >= 0:
+                board_value =  board_state[head_x, head_y - 1]
+                # if up is not a wall
+                if ((head_x == tail_x and head_y - 1 == tail_y) or \
+                    board_value == self.food or board_value == self.empty):
+                    # if not our own tail or is food or is empty
+                        proximity_flags[noGo_index] = self.empty
+                        safeMoves.append('up')
+
+                        proximity_flags[food_index] = (board_value == self.food) + 0
+                
+            
+            if (head_y + 1) >= 0:
+                board_value =  board_state[head_x, head_y + 1]
+                # if down is not a wall
+                if ((head_x == tail_x and head_y + 1 == tail_y) or \
+                    board_value == self.food or board_value == self.empty):
+                    # if not our own tail or is food or is empty
+                        proximity_flags[noGo_index + 1] = self.empty
+                        safeMoves.append('down')
+
+                        proximity_flags[food_index + 1] = (board_value == self.food) + 0
+
+            if (head_x - 1) >= 0:
+                board_value =  board_state[head_x - 1, head_y]
+                # if left is not a wall
+                if ((head_x - 1 == tail_x and head_y == tail_y) or \
+                    board_value == self.food or board_value == self.empty):
+                    # if not our own tail or is food or is empty
+                        proximity_flags[noGo_index + 2] = self.empty
+                        safeMoves.append('left')
+
+                        proximity_flags[food_index + 2] = (board_value == self.food) + 0
+
+            if (head_x + 1) >= 0:
+                board_value =  board_state[head_x + 1, head_y]
+                # if right is not a wall
+                if ((head_x + 1 == tail_x and head_y == tail_y) or \
+                    board_value == self.food or board_value == self.empty):
+                    # if not our own tail or is food or is empty
+                        proximity_flags[noGo_index + 3] = self.empty
+                        safeMoves.append('right')
+
+                        proximity_flags[food_index + 3] = (board_value == self.food) + 0
+
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
@@ -195,29 +258,10 @@ class Snekgame(gym.Env):
         if head_y < 0:
             head_y = 0
 
-        boardStateFlat = np.ndarray.flatten(board_state)
-
         observation = np.full(shape=((self.max_board_size * self.max_board_size) + 5,), fill_value=self.noGo, dtype=np.float32)
-        observation[0:(self.max_board_size * self.max_board_size)] = boardStateFlat
+        observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
         observation[(self.max_board_size * self.max_board_size)] = currentHP
-
-        safeMoves = []
-        if  head_x < self.max_board_size - 1 and head_y < self.max_board_size:
-            if board_state[head_x + 1, head_y] == self.empty or board_state[head_x + 1,head_y] == self.food or (head_x + 1 == tail_x and head_y == tail_y and len(data["you"]["body"]) > 3):
-                safeMoves.append('right')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x + 1,head_y]            
-        if head_x > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x - 1,head_y] == self.empty or board_state[head_x - 1,head_y] == self.food or (head_x - 1 == tail_x and head_y == tail_y and len(data["you"]["body"]) > 3):
-                safeMoves.append('left')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x - 1,head_y]
-        if head_y < self.max_board_size - 1 and head_x < self.max_board_size:        
-            if board_state[head_x,head_y + 1] == self.empty or board_state[head_x,head_y + 1] == self.food or (head_x == tail_x and head_y + 1 == tail_y and len(data["you"]["body"]) > 3):
-                safeMoves.append('down')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y + 1]
-        if  head_y > 0 and head_x < self.max_board_size and head_y < self.max_board_size:
-            if board_state[head_x,head_y - 1] == self.empty or board_state[head_x,head_y - 1] == self.food or (head_x == tail_x and head_y - 1 == tail_y and len(data["you"]["body"]) > 3):
-                safeMoves.append('up')
-            observation[(self.max_board_size * self.max_board_size)] = board_state[head_x,head_y - 1]
+        observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
 
         return observation, reward, safeMoves
 
