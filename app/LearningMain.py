@@ -16,7 +16,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None):
+def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=20000):
     # Get the environment and extract the number of actions.
     if loadFileNumber != None:
         load_file_number = loadFileNumber #-1 loads no starting file
@@ -96,7 +96,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None):
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=80000, window_length=1)
+    memory = SequentialMemory(limit=memoryAllocation, window_length=1)
     policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
@@ -110,13 +110,12 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None):
     #Start traing
     # Ctrl + C.
     # We train and store 
+    
     counter = 0
     while True:
-        print("started training a new set")
         dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)
         counter+=1
         saveFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
-        "saved file"
 
 

@@ -80,11 +80,11 @@ if __name__ == '__main__':
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', '80'),
+        port=os.getenv('PORT', '81'),
         debug=os.getenv('DEBUG', False),
         quiet=True
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=-1)
+        Env=envi, max_board_size=sizeType, loadFileNumber=-1, gpuToUse="1")
     ).start()

@@ -14,9 +14,9 @@ sizeType = 7
 
 
 envi = Snekgame(max_board_size=sizeType)
-envi.train_not_hit_walls()
-startTime = time.time()
-
+envi.init_wholesome_pp()
+envi0 = Snekgame(max_board_size=sizeType)
+envi0.init_absolute_unit()
 
 
 @bottle.route('/')
@@ -80,8 +80,11 @@ if __name__ == '__main__':
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', '80'),
+        port=os.getenv('PORT', '82'),
         debug=os.getenv('DEBUG', False),
         quiet=True
         )
+    ).start()
+    threading.Thread(target=dummyRun, kwargs=dict(
+        Env=envi, max_board_size=sizeType)
     ).start()
