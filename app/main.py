@@ -14,7 +14,7 @@ sizeType = 19
 
 
 envi = Snekgame(max_board_size=sizeType)
-envi.init_wholesome_pp()
+envi.init_just_win_aggresive()
 
 
 @bottle.route('/')
@@ -53,6 +53,10 @@ def move():
     #print("move Request recived")
     global envi
     data = bottle.request.json
+    if len(data['board']['snakes']) == 1:
+        envi.endEnvi(win=True)
+    else:
+        envi.endEnvi(win=False)
     envi.sendNewData(data)
     move = envi.getMove()
     while move == None:
@@ -64,8 +68,8 @@ def move():
 def end():
     #print("end message recived")
     data = bottle.request.json
-    if len(data['board']['snakes']) == 0:
-        envi.endEnvi(win=False) #TODO change to True when training with multiple snakes
+    if len(data['board']['snakes']) == 1:
+        envi.endEnvi(win=True)
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)

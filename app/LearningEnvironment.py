@@ -100,6 +100,7 @@ class Snekgame(gym.Env):
 
     def reset(self):
         self.newMoveFlag = True
+        self.winFlag = False
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
         self.gameOverFlag = False
@@ -179,7 +180,8 @@ class Snekgame(gym.Env):
         #Check if the game has been won or lost, and adjust reward accordingly.
         #This only adds to the turns reward as if you killed someone it might be worth.
         if self.gameOverFlag:
-            if self.winFlag:
+            if self.winFlag :
+                print("I WON")
                 reward += self.winReward
             elif diedOnWallFlag:
                 reward += self.diedOnWallReward
@@ -388,4 +390,15 @@ class Snekgame(gym.Env):
         self.killReward         = 5
         self.winReward          = 250
         self.diedOnWallReward   = -100
+        ## Reward definitions
+
+
+    def init_just_win_aggresive(self):
+        ## Reward definitions
+        self.dieReward          = -10
+        self.didNothingReward   = -1
+        self.eatReward          = -1
+        self.killReward         = 30
+        self.winReward          = 250
+        self.diedOnWallReward   = -10
         ## Reward definitions
