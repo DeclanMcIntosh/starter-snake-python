@@ -39,18 +39,22 @@ def main():
     snakeConfigMaker()
 
     while(True):
-        output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
+        print("tring")
+        try:
+            output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
 
-        hash = json.loads(output)["ID"]
+            hash_ = json.loads(output)["ID"]
 
-        print("Game Hash: " + hash)
-        
-        run_command(ENGINE_DIRECTORY + RUN_GAME + hash)
+            print("Game Hash: " + hash_)
+            
+            run_command(ENGINE_DIRECTORY + RUN_GAME + hash_)
 
-        while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash).decode("utf-8").find(COMPLETE_STATUS) == -1):
-            time.sleep(SLEEP_TIME)
+            while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash_).decode("utf-8").find(COMPLETE_STATUS) == -1):
+                time.sleep(SLEEP_TIME)
 
-        snakeConfigMaker()
+            snakeConfigMaker()
+        except:
+            pass
 
 # sentinel 
 if __name__ == "__main__":

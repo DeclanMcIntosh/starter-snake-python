@@ -10,13 +10,14 @@ def snakeConfigMaker():
     #randomly select board size
     boardSizes = [7, 11, 19]
     size = random.choice(boardSizes)
+    size = 7
 
     #randomly select food amount; range is currently 1 to double length of board
     foodAmount = random.randint(1, size*2)
 
     #randomize snakes: shuffle snakes and take eight of them, always including the base snake
     playingSnakes = ["http://192.168.0.10:80", "http://192.168.0.10:81"]
-    for x in range(0,random.randint(0,7)):
+    for x in range(0,random.randint(0,6)):
         playingSnakes.append("http://192.168.0.10:82")
 
     #create the dict of snakes
@@ -34,10 +35,12 @@ def snakeConfigMaker():
     data["height"]   =    size
     data["food"]     =    foodAmount
     data["snakes"]   =    snakes
-
-    #generate json file from data
-    with open("snake-config.json", "w") as write_file:
-        json.dump(data, write_file)
+    try:
+        #generate json file from data
+        with open("snake-config.json", "w") as write_file:
+            json.dump(data, write_file)
+    except:
+        pass
 
 
 #specialized version for only the base snake alone
