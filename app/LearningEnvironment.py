@@ -76,10 +76,15 @@ class Snekgame(gym.Env):
             self.move = 'down' 
         
         badMove = False
-        # if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
-        #     self.move = choice(self.currSafeMoves)
-        #     badMove = True
-            
+    
+
+        if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
+            self.move = choice(self.currSafeMoves)
+            badMove = True
+        print(" ")
+        print(self.currSafeMoves)
+        print("Move: " + self.move)
+
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
 
@@ -88,7 +93,7 @@ class Snekgame(gym.Env):
             time.sleep(0.01)
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
 
-
+    
         if badMove:
             reward = 0
 
@@ -102,7 +107,6 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
-        self.newMoveFlag = True
         self.winFlag = False
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
@@ -232,8 +236,6 @@ class Snekgame(gym.Env):
                         safeMoves.append('right')
 
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
-            
-            print(safeMoves)
         
         #Update previous state variables
         self.previousHP = currentHP

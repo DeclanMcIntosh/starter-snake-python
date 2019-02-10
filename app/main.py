@@ -43,8 +43,9 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    #print("start request recived")
+    data = bottle.request.json
     color = "#00FF00"
+    envi.sendNewData(data)
     return start_response(color)
 
 
@@ -58,9 +59,10 @@ def move():
     else:
         envi.endEnvi(win=False)
     envi.sendNewData(data)
-    move = envi.getMove()
+    move = None
     while move == None:
-        move = envi.getMove()   
+        move = envi.getMove() 
+    print("taken move" + move) 
     return move_response(move)
 
 
