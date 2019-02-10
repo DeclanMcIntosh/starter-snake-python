@@ -66,6 +66,7 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
+        print('\n STEP')
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -76,7 +77,11 @@ class Snekgame(gym.Env):
             self.move = 'down' 
         
         badMove = False
-    
+
+        #Wait for new board state
+        while self.newJsonDataFlag == False:
+            time.sleep(0.01)
+        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
 
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
@@ -87,12 +92,6 @@ class Snekgame(gym.Env):
 
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
-
-        #Wait for new board state
-        while self.newJsonDataFlag == False:
-            time.sleep(0.01)
-        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
-
     
         if badMove:
             reward = 0
@@ -107,10 +106,12 @@ class Snekgame(gym.Env):
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
+        print('\n RESET ')
         self.winFlag = False
-        while self.newJsonDataFlag == False:
-            time.sleep(0.01)
         self.gameOverFlag = False
+        while self.newJsonDataFlag == False:
+            print("test were stuck in reset")
+            time.sleep(0.01)
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
         return observation
@@ -270,15 +271,19 @@ class Snekgame(gym.Env):
         return observation, reward, safeMoves
 
     def endEnvi(self, win):
+        print('\n END ENVI')
         self.winFlag = win
         self.gameOverFlag = True
 
     def sendNewData(self, data):
+        print('\n SENDNEWDATA')
         self.JsonServerData = data
         self.newJsonDataFlag = True
 
     def getMove(self):
+        
         if self.newMoveFlag:
+            print('\n self.newMoveFlag==true')
             self.newMoveFlag = False
             return self.move
         return None
