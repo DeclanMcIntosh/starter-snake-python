@@ -16,7 +16,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
-def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=20000):
+def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=80000):
     # Get the environment and extract the number of actions.
     if loadFileNumber != None:
         load_file_number = loadFileNumber #-1 loads no starting file

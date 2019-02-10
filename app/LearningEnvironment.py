@@ -74,9 +74,9 @@ class Snekgame(gym.Env):
             self.move = 'down' 
         
         badMove = False
-        if self.move not in self.currSaveMoves and len(self.currSaveMoves) > 0:
-            self.move = choice(self.currSaveMoves)
-            badMove = True
+        #if self.move not in self.currSaveMoves and len(self.currSaveMoves) > 0:
+        #    self.move = choice(self.currSaveMoves)
+        #    badMove = True
             
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
@@ -296,12 +296,12 @@ class Snekgame(gym.Env):
     # that snek who's just a bit better :/
     def init_wholesome_pp(self):
         ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = 0
-        self.eatReward          = 0
+        self.dieReward          = -100
+        self.didNothingReward   = 5
+        self.eatReward          = 5
         self.killReward         = 10
         self.winReward          = 250
-        self.diedOnWallReward   = -250
+        self.diedOnWallReward   = -100
         ## Reward definitions
 
     # might want to lay off the food. is the snek that makes people in elevators glance at snek capacity limit

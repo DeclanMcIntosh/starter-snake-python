@@ -15,8 +15,6 @@ sizeType = 7
 
 envi = Snekgame(max_board_size=sizeType)
 envi.init_wholesome_pp()
-envi0 = Snekgame(max_board_size=sizeType)
-envi0.init_absolute_unit()
 
 
 @bottle.route('/')
