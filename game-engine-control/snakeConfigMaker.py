@@ -15,10 +15,9 @@ def snakeConfigMaker():
     foodAmount = random.randint(1, size*2)
 
     #randomize snakes: shuffle snakes and take eight of them, always including the base snake
-    allSnakes = ["http://192.168.0.10:80", "http://192.168.0.10:81", "http://192.168.0.10:82", "http://192.168.0.10:83", "http://192.168.0.10:84", 
-                 "http://192.168.0.10:85", "http://192.168.0.10:86", "http://192.168.0.10:87", "http://192.168.0.10:88", "http://192.168.0.10:89", ]
-    random.shuffle(allSnakes)
-    playingSnakes = allSnakes[0:random.randint(1,8)]
+    playingSnakes = ["http://192.168.0.10:80", "http://192.168.0.10:81"]
+    for x in range(0,random.randint(0,7)):
+        playingSnakes.append("http://192.168.0.10:82")
 
     #create the dict of snakes
     #the name is just the last number in the IP address

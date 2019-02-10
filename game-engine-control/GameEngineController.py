@@ -36,7 +36,7 @@ def run_command(command_line):
 
 def main():
     input("Press Enter to continue...")
-    snakeConfigMakerNoHitWalls()
+    snakeConfigMaker()
 
     while(True):
         output = run_command(ENGINE_DIRECTORY + CREATE_GAME + JSON_FILE_LOCATION)
@@ -50,7 +50,7 @@ def main():
         while (run_command(ENGINE_DIRECTORY + GAME_STATUS + hash).decode("utf-8").find(COMPLETE_STATUS) == -1):
             time.sleep(SLEEP_TIME)
 
-        snakeConfigMakerNoHitWalls()
+        snakeConfigMaker()
 
 # sentinel 
 if __name__ == "__main__":
