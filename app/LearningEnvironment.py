@@ -166,7 +166,6 @@ class Snekgame(gym.Env):
 
         # Fill our snake body segment locations
         diedOnWallFlag, head_x, head_y, tail_x, tail_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
-        tails.append(tail_x, tail_y)
 
         # Fill food locations
         for xy_pair in board["food"]:
@@ -192,21 +191,20 @@ class Snekgame(gym.Env):
             if (head_y - 1) >= 0:
                 board_value =  board_state[head_x, head_y - 1]
                 # if up is not a wall
-                if (((head_x,head_y - 1) in tails) and currentLength > 3) or \
+                if ((head_x,head_y - 1) == (tail_x, tail_y) and currentLength > 3) or ((head_x,head_y - 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
-                    # if not our own tail or is food or is empty
+                    # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index] = self.empty
                         safeMoves.append('up')
 
                         proximity_flags[food_index] = (board_value == self.food) + 0
-                
             
             if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if (((head_x,head_y + 1) in tails) and currentLength > 3) or \
+                if ((head_x,head_y + 1) == (tail_x, tail_y) and currentLength > 3) or ((head_x,head_y + 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
-                    # if not our own tail or is food or is empty
+                    # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 1] = self.empty
                         safeMoves.append('down')
 
@@ -215,9 +213,9 @@ class Snekgame(gym.Env):
             if (head_x - 1) >= 0:
                 board_value =  board_state[head_x - 1, head_y]
                 # if left is not a wall
-                if (((head_x - 1,head_y) in tails) and currentLength > 3) or \
+                if ((head_x - 1,head_y) == (tail_x, tail_y) and currentLength > 3) or ((head_x - 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
-                    # if not our own tail or is food or is empty
+                    # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 2] = self.empty
                         safeMoves.append('left')
 
@@ -226,13 +224,15 @@ class Snekgame(gym.Env):
             if (head_x + 1) < self.max_board_size:
                 board_value =  board_state[head_x + 1, head_y]
                 # if right is not a wall
-                if (((head_x + 1,head_y) in tails) and currentLength > 3) or \
+                if ((head_x + 1,head_y) == (tail_x, tail_y) and currentLength > 3) or ((head_x + 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
-                    # if not our own tail or is food or is empty
+                    # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 3] = self.empty
                         safeMoves.append('right')
 
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
+            
+            print(safeMoves)
         
         #Update previous state variables
         self.previousHP = currentHP
@@ -246,7 +246,6 @@ class Snekgame(gym.Env):
         #This only adds to the turns reward as if you killed someone it might be worth.
         if self.gameOverFlag:
             if self.winFlag :
-                print("I WON")
                 reward += self.winReward
             elif diedOnWallFlag:
                 reward += self.diedOnWallReward
