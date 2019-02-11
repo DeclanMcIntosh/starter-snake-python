@@ -40,61 +40,63 @@ headZeroHP     = 0.8 # 0.8 <= head <= 0.9
 headMaxHP      = 0.9 # 0HP --------> max_health
 ## Board Encoding definition
 
-class player():
-    def __init__(self, Env, max_board_size=7, memoryAllocation=800000, newObservation = False, data = None, moveChosen = None):
+def startDummy(env, Comm):
 
-        self.env = Env
-        nb_actions = self.env.action_space.n
-
-
-        layer0Size = 256
-        layer1Size = 128
-        layer2Size = 64
-        layer3Size = 64
-        layer4Size = 32
-        layer5Size = 16
-
-        # Next, we build a very simple model. 
-        model = Sequential()
-        model.add(Flatten(input_shape=(1,) + self.env.observation_space.shape))
-        model.add(Dense(layer0Size))
-        model.add(Activation('relu'))
-        model.add(Dense(layer1Size))
-        model.add(Activation('relu'))
-        model.add(Dense(layer2Size))
-        model.add(Activation('relu'))
-        model.add(Dense(layer3Size))
-        model.add(Activation('relu'))
-        model.add(Dense(layer4Size))
-        model.add(Activation('relu'))
-        model.add(Dense(layer5Size))
-        model.add(Activation('relu'))
-        model.add(Dense(nb_actions))
-        model.add(Activation('linear'))
+    
+    nb_actions = env.action_space.n
 
 
-        #A little diagnosis of the model summary
-        print(model.summary())
+    layer0Size = 256
+    layer1Size = 128
+    layer2Size = 64
+    layer3Size = 64
+    layer4Size = 32
+    layer5Size = 16
 
-        # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
-        # even the metrics!
-        memory = SequentialMemory(limit=memoryAllocation, window_length=1)
-        policy = BoltzmannQPolicy()
-        self.dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
-        self.dqn.compile(nadam(lr=0.001), metrics=['mae']) 
+    # Next, we build a very simple model. 
+    model = Sequential()
+    model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
+    model.add(Dense(layer0Size))
+    model.add(Activation('relu'))
+    model.add(Dense(layer1Size))
+    model.add(Activation('relu'))
+    model.add(Dense(layer2Size))
+    model.add(Activation('relu'))
+    model.add(Dense(layer3Size))
+    model.add(Activation('relu'))
+    model.add(Dense(layer4Size))
+    model.add(Activation('relu'))
+    model.add(Dense(layer5Size))
+    model.add(Activation('relu'))
+    model.add(Dense(nb_actions))
+    model.add(Activation('linear'))
 
-        self.loadFromFile()
+    #A little diagnosis of the model summary
+    print(model.summary())
 
-        #Load Previous training 
+    # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
+    # even the metrics!
+    memory = SequentialMemory(limit=800000, window_length=1)
+    policy = BoltzmannQPolicy()
+    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
+    dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
-        #Start traing
-        # Ctrl + C.
-        # We train and store 
+    loadFromFile(dqn)
+
+    #Load Previous training 
+
+    #Start traing
+    # Ctrl + C.
+    # We train and store 
         
-    def getMove(self, data):
-        #self.env.sendNewData(data=data)
-        observation, notUsed, currSafeMoves = self.env.findObservation(data=data)
-        action = self.dqn.forward(observation)
+    while(True):
+        if Comm.checkLoadNewFileCommand():
+            loadFromFile(dqn)
+        data = None
+        while data == None:
+            data = Comm.getNewData()
+        observation, notUsed, currSafeMoves = env.findObservation(data=data)
+        action = dqn.forward(observation)
         if action == 0 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
             moveChosen = 'left' 
         if action == 1 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
@@ -107,16 +109,54 @@ class player():
             moveChosen = choice(currSafeMoves)
         if moveChosen == None:
             moveChosen = 'left'
-        return moveChosen
+        Comm.giveNewMove(moveChosen)
 
 
-    def loadFromFile(self):
-        '''
-        attempts to load agent random files untill an appropriate file is found
-        '''
-        files = glob.glob("*.h5f")
-        try:
-            self.dqn.load_weights(random.choice(files))
-        except: 
-            print("Invalid file re-trying")
-            self.loadFromFile()
+def loadFromFile(dqn):
+    '''
+    attempts to load agent random files untill an appropriate file is found
+    '''
+    files = glob.glob("*.h5f")
+    try:
+        dqn.load_weights(random.choice(files))
+    except: 
+        print("Invalid file re-trying")
+        loadFromFile(dqn)
+
+
+
+class threadComms():
+    def __init__(self):
+        self.newMoveAvailibe = False
+        self.newDataAvailible = False
+        self.data = None
+        self.move = None
+        self.loadNewFileCommand = False
+
+    def giveNewData(self, data):
+        self.data = data
+        self.newDataAvailible = True
+    
+    def getNewData(self):
+        if self.newDataAvailible:
+            self.newDataAvailible = False
+            return self.data
+        else:
+            return None 
+    
+    def giveNewMove(self, move):
+        self.move = move
+        self.newMoveAvailibe = True
+
+    def getNewMove(self):
+        if self.newMoveAvailibe:
+            self.newMoveAvailibe = False
+            return self.move
+        else:
+            return None
+
+    def assertLoadNewFile(self):
+        self.loadNewFileCommand = True
+    
+    def checkLoadNewFileCommand(self):
+        return self.loadNewFileCommand

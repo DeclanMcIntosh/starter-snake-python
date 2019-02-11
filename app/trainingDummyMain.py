@@ -16,7 +16,7 @@ sizeType = 19
 envi = Snekgame(max_board_size=sizeType)
 envi.init_wholesome_pp()
 
-dummy = player(envi)
+comm = threadComms()
 
 @bottle.route('/')
 def index():
@@ -52,19 +52,18 @@ def start():
 @bottle.post('/move')
 def move():
     #print("move Request recived")
-    global data
-    global newObservation
-    global moveChosen
-    moveChosen = None
     data = bottle.request.json
-    sendMove = dummy.getMove(data)
+    comm.giveNewData(data)
+    sendMove = None
+    while sendMove == None:
+        sendMove = comm.getNewMove()
     return move_response(sendMove)
 
 
 @bottle.post('/end')
 def end():
-
     data = bottle.request.json
+    comm.assertLoadNewFile()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -77,5 +76,10 @@ if __name__ == '__main__':
         port=os.getenv('PORT', '82'),
         debug=os.getenv('DEBUG', False),
         quiet=True
+        )
+    ).start()
+    threading.Thread(target=startDummy, kwargs=dict(
+        env = envi,
+        Comm = comm
         )
     ).start()
