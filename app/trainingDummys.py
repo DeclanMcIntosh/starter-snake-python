@@ -92,23 +92,23 @@ def startDummy(env, Comm):
     while(True):
         if Comm.checkLoadNewFileCommand():
             loadFromFile(dqn)
+            Comm.unAssertLoadNewFile()
         data = None
         while data == None:
             data = Comm.getNewData()
         observation, notUsed, currSafeMoves = env.findObservation(data=data)
         action = dqn.forward(observation)
-        if action == 0 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
+        if action == 0:
             moveChosen = 'left' 
-        if action == 1 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
+        if action == 1:
             moveChosen = 'right' 
-        if action == 2 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
+        if action == 2:
             moveChosen = 'up' 
-        if action == 3 and 'left' in currSafeMoves and len(currSafeMoves) > 0:
+        if action == 3:
             moveChosen = 'down' 
-        if moveChosen == None and len(currSafeMoves) > 0:
+        if moveChosen not in currSafeMoves and len(currSafeMoves) > 0:
             moveChosen = choice(currSafeMoves)
-        if moveChosen == None:
-            moveChosen = 'left'
+
         Comm.giveNewMove(moveChosen)
 
 
@@ -119,6 +119,7 @@ def loadFromFile(dqn):
     files = glob.glob("*.h5f")
     try:
         dqn.load_weights(random.choice(files))
+        print("loaded new file!")
     except: 
         print("Invalid file re-trying")
         loadFromFile(dqn)
@@ -157,6 +158,9 @@ class threadComms():
 
     def assertLoadNewFile(self):
         self.loadNewFileCommand = True
+    
+    def unAssertLoadNewFile(self):
+        self.loadNewFileCommand = False
     
     def checkLoadNewFileCommand(self):
         return self.loadNewFileCommand

@@ -43,9 +43,11 @@ def ping():
 
 @bottle.post('/start')
 def start():
+    #print("start Request recived")
     data = bottle.request.json
     color = "#00FF00"
-    envi.sendNewData(data)
+    #envi.sendNewData(data)
+    #print("start Request responded")
     return start_response(color)
 
 
@@ -54,19 +56,32 @@ def move():
     #print("move Request recived")
     global envi
     data = bottle.request.json
-    if len(data['board']['snakes']) == 1:
-        envi.endEnvi(win=True)
     envi.sendNewData(data)
     move = None
-    while move == None:
+    counter = 0 
+    while move == None and counter < 9000:
         move = envi.getMove()
+        time.sleep(0.0001)
+        counter += 1
+    if counter >= 9000:
+        move_response("left")
+    #print("move Request responded")
     return move_response(move)
 
 
 @bottle.post('/end')
 def end():
     data = bottle.request.json
-    envi.sendNewData(data)
+    won = False
+    #if len(data["board"]["snakes"]) == 1 and (data["board"]["snakes"][0]["name"] == "legless lizzard" or data["board"]["snakes"][0]["name"] == "0"):
+    snakeNames = []
+    for snake in data["board"]["snakes"]:
+        snakeNames.append(snake["name"])
+    if len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames):
+        won = True
+    envi.endEnvi(won)
+    #envi.sendNewData(data)
+    #print("end Request responded")
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -82,5 +97,5 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=-1)
+        Env=envi, max_board_size=sizeType, loadFileNumber=6)
     ).start()

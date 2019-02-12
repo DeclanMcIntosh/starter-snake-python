@@ -46,24 +46,33 @@ def ping():
 def start():
     data = bottle.request.json
     color = "#00FF00"
+    comm.assertLoadNewFile()
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
     #print("move Request recived")
+    start = time.time()
     data = bottle.request.json
+    traingSnakeDead = True
+    #if the snake we are traning is not in the game kill yourself
+    for snake in data["board"]["snakes"]:
+        if snake["name"] == "0" or snake["name"] == "legless lizzard":
+            traingSnakeDead = False
+    if traingSnakeDead:
+        return move_response("down")
     comm.giveNewData(data)
     sendMove = None
     while sendMove == None:
         sendMove = comm.getNewMove()
+    print("move made in " + str(time.time() - start))
     return move_response(sendMove)
 
 
 @bottle.post('/end')
 def end():
     data = bottle.request.json
-    comm.assertLoadNewFile()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)

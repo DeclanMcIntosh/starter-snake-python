@@ -17,6 +17,11 @@ class Snekgame(gym.Env):
     '''Snek environment for snek game snek
     '''
     def __init__(self, max_board_size=7):
+        #stats
+        self.wins = 0
+        self.loses = 0
+        self.wonQuestionMark = False
+
         self.max_board_size=max_board_size
         #Diagnostic File
         self.diag = open("diagnostic.txt", "a+")
@@ -67,6 +72,8 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
+        #print(" ")
+        #print("start Step")
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -78,38 +85,57 @@ class Snekgame(gym.Env):
         
         badMove = False
 
-        #Wait for new board state
-        while self.newJsonDataFlag == False:
-            time.sleep(0.01)
-        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
-
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
             badMove = True
+        #print("Filtered Move " + self.move)
+        #print(self.currSafeMoves)
 
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
-    
-        if badMove:
-            reward = 0
 
+        #Wait for new board state
+        while self.newJsonDataFlag == False and self.gameOverFlag == False:
+            time.sleep(0.01)
+        #print("got JSON for step")
         #Reset Flag
         self.newJsonDataFlag = False
+        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
+    
+        #if badMove:
+        #    reward = 0
+
+        if self.gameOverFlag and self.winFlag:
+            reward = self.winReward
+            self.wins += 1
+        
+        if self.gameOverFlag and self.winFlag == False:
+            reward = self.dieReward
+            self.loses += 1
 
             # we return an observation of the state after action is taken
             # a reward for the action just taken, an16
             # a bool of if the episode is over
             # optionally we can include a dict of other diagnostics we may care about...
+        #print("end step")
+        #print(" ")
+        #
+        #print(reward)
         return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
 
     def reset(self):
+        #print(" ")
+        #print("start reset")
         self.winFlag = False
         self.gameOverFlag = False
-        self.newMoveFlag = True
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
+        #print("got json data for reset")
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
+        #if self.wins > 0 or self.loses > 0:
+        #    print("    Wins: " + str(self.wins) + "   Losses: " + str(self.loses) + "  Win %: " + str(100 * self.wins/(self.wins+ self.loses)) + "%")
+        #print("end reset")
         return observation
 
     def findObservation(self, data):
@@ -133,7 +159,8 @@ class Snekgame(gym.Env):
         # if number of snakes alive has decreased, a snake must have died (either directly
         # through this snake's actions, or through the butterfly effect)
         if (numSnakesAlive < self.previousNumSnakes):
-            reward = self.killReward
+            reward = self.killReward * (self.previousNumSnakes - numSnakesAlive)
+            #print("killed")
             rewardSet = True
         
         board_state = np.zeros((self.max_board_size, self.max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
@@ -189,11 +216,10 @@ class Snekgame(gym.Env):
             # if snek is not dead
             noGo_index = 0
             food_index = 4
-
             if (head_y - 1) >= 0:
                 board_value =  board_state[head_x, head_y - 1]
                 # if up is not a wall
-                if ((head_x,head_y - 1) == (tail_x, tail_y) and currentLength > 3) or ((head_x,head_y - 1) in tails) or \
+                if ((head_x,head_y - 1) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x,head_y - 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index] = self.empty
@@ -204,7 +230,7 @@ class Snekgame(gym.Env):
             if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if ((head_x,head_y + 1) == (tail_x, tail_y) and currentLength > 3) or ((head_x,head_y + 1) in tails) or \
+                if ((head_x,head_y + 1) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x,head_y + 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 1] = self.empty
@@ -215,7 +241,7 @@ class Snekgame(gym.Env):
             if (head_x - 1) >= 0:
                 board_value =  board_state[head_x - 1, head_y]
                 # if left is not a wall
-                if ((head_x - 1,head_y) == (tail_x, tail_y) and currentLength > 3) or ((head_x - 1,head_y) in tails) or \
+                if ((head_x - 1,head_y) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x - 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 2] = self.empty
@@ -226,7 +252,7 @@ class Snekgame(gym.Env):
             if (head_x + 1) < self.max_board_size:
                 board_value =  board_state[head_x + 1, head_y]
                 # if right is not a wall
-                if ((head_x + 1,head_y) == (tail_x, tail_y) and currentLength > 3) or ((head_x + 1,head_y) in tails) or \
+                if ((head_x + 1,head_y) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x + 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 3] = self.empty
@@ -244,14 +270,6 @@ class Snekgame(gym.Env):
 
         #Check if the game has been won or lost, and adjust reward accordingly.
         #This only adds to the turns reward as if you killed someone it might be worth.
-        if self.gameOverFlag:
-            if self.winFlag :
-                reward += self.winReward
-        
-        if self.checkIfDied(data):
-            reward += self.dieReward
-            self.gameOverFlag = True
-        
 
         #Flatten the output and place in a current hp value
         #Place centered
@@ -264,19 +282,17 @@ class Snekgame(gym.Env):
         observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
         observation[(self.max_board_size * self.max_board_size)] = currentHP
         observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
-
         return observation, reward, safeMoves
 
     def endEnvi(self, win):
-        self.winFlag = win
         self.gameOverFlag = True
+        self.winFlag = win
 
     def sendNewData(self, data):
         self.JsonServerData = data
         self.newJsonDataFlag = True
 
     def getMove(self):
-        
         if self.newMoveFlag:
             self.newMoveFlag = False
             return self.move
@@ -328,26 +344,7 @@ class Snekgame(gym.Env):
         if head_location["x"] > 0 and head_location["x"] < self.max_board_size and head_location["y"] > 0 and head_location["y"] < self.max_board_size:
             board_state[head_location["x"], head_location["y"]] = head_val
 
-        return wallDeathFlag, head_location["x"], head_location["y"], body_x, body_y
-
-    def checkIfDied(self, data):
-        boardWidthHeight = data["board"]["height"]
-        ourHeadX = data["you"]["body"][0]["x"]
-        ourHeadY = data["you"]["body"][0]["y"]
-
-        if ourHeadX >= boardWidthHeight or ourHeadY >=boardWidthHeight:
-            return True
-        if ourHeadX < 0 or ourHeadY < 0:
-            return True
-
-        if data["you"]["health"] <= 0:
-            return True
-
-        for snakeBody in data["board"]["snakes"]:
-            if data["you"]["body"][0] in snakeBody["body"] and data["you"]["id"] != snakeBody["id"]:
-                return True
-            if data["you"]["body"][0] in snakeBody["body"][1:] and data["you"]["id"] == snakeBody["id"] :
-                return True
+        return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
 
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
@@ -458,13 +455,12 @@ class Snekgame(gym.Env):
         self.diedOnWallReward   = -100
         ## Reward definitions
 
-
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -50
-        self.didNothingReward   = 0
-        self.eatReward          = 0
-        self.killReward         = 30
+        self.dieReward          = -150
+        self.didNothingReward   = 1
+        self.eatReward          = 1
+        self.killReward         = 10
         self.winReward          = 250
-        self.diedOnWallReward   = -50
+        self.diedOnWallReward   = -150
         ## Reward definitions

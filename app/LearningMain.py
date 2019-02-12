@@ -97,7 +97,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     # even the metrics!
     memory = SequentialMemory(limit=memoryAllocation, window_length=1)
     policy = BoltzmannQPolicy()
-    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
+    dqn = DQNAgent(model=model, batch_size=128, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
     if load_file_number >= 0:
