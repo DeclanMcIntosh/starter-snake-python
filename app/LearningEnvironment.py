@@ -12,6 +12,8 @@ from gym.utils import seeding
 max_health = 100
 num_proximity_flags = 8
 num_health_flags = 1
+viewsize = 38
+centerpoint = 19
 
 class Snekgame(gym.Env):
     '''Snek environment for snek game snek
@@ -63,7 +65,7 @@ class Snekgame(gym.Env):
         #Required OpenAi gym things
             #Define observation and action space sizes
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(shape=((self.max_board_size * self.max_board_size) + num_health_flags + \
+        self.observation_space = spaces.Box(shape=((viewsize * viewsize) + num_health_flags + \
             num_proximity_flags,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
@@ -102,8 +104,8 @@ class Snekgame(gym.Env):
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
     
-        #if badMove:
-        #    reward = 0
+        if badMove:
+            reward = -2
 
         if self.gameOverFlag and self.winFlag:
             reward = self.winReward
@@ -278,10 +280,21 @@ class Snekgame(gym.Env):
         if head_y < 0:
             head_y = 0
 
-        observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
-        observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
-        observation[(self.max_board_size * self.max_board_size)] = currentHP
-        observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
+        #New Centered Observation
+        centeredView = np.full(shape=(viewsize, viewsize), fill_value=self.noGo, dtype=np.float32)
+        observation = np.full(shape=((viewsize * viewsize) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
+        centeredView[centerpoint - head_x : centerpoint - head_x + centerpoint,centerpoint - head_y : centerpoint - head_y + centerpoint] = board_state
+        observation[0: viewsize * viewsize] = np.ndarray.flatten(centeredView)
+        observation[viewsize * viewsize] = currentHP
+        observation[viewsize * viewsize + 1: len(observation)] = proximity_flags
+
+
+        # Old observation
+
+        #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
+        #observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
+        #observation[(self.max_board_size * self.max_board_size)] = currentHP
+        #observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
         return observation, reward, safeMoves
 
     def endEnvi(self, win):
@@ -457,10 +470,10 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -150
-        self.didNothingReward   = 1
-        self.eatReward          = 1
-        self.killReward         = 10
-        self.winReward          = 250
-        self.diedOnWallReward   = -150
+        self.dieReward          = -200
+        self.didNothingReward   = 0.2
+        self.eatReward          = 0.2
+        self.killReward         = 25
+        self.winReward          = 200
+        self.diedOnWallReward   = -200
         ## Reward definitions

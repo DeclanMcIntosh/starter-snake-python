@@ -46,9 +46,9 @@ def startDummy(env, Comm):
     nb_actions = env.action_space.n
 
 
-    layer0Size = 256
-    layer1Size = 128
-    layer2Size = 64
+    layer0Size = 512
+    layer1Size = 256
+    layer2Size = 128
     layer3Size = 64
     layer4Size = 32
     layer5Size = 16

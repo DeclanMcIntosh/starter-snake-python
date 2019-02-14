@@ -62,9 +62,9 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
 
     # 361 + 5 inputs
     if max_board_size == 19:
-        layer0Size = 256
-        layer1Size = 128
-        layer2Size = 64
+        layer0Size = 512
+        layer1Size = 256
+        layer2Size = 128
         layer3Size = 64
         layer4Size = 32
         layer5Size = 16
@@ -87,9 +87,6 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
-
-
-
     #A little diagnosis of the model summary
     print(model.summary())
 
@@ -101,7 +98,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
     if load_file_number >= 0:
-        loadFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+        loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
         dqn.load_weights(loadFile)
 
     #Load Previous training 
@@ -112,9 +109,9 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=10000, visualize=False, verbose=1)
+        dqn.fit(env, nb_steps=10001, visualize=False, verbose=1)
         counter+=1
-        saveFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
+        saveFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
 
 
