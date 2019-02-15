@@ -97,12 +97,12 @@ def end():
     global learningGame
     global learningSnakeID
     data = bottle.request.json
-    won = False
+
     snakeNames = []
     for snake in data["board"]["snakes"]:
         snakeNames.append(snake["name"])
-    if len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames):
-        won = True
+    won = len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames)
+    
     envi.endEnvi(won)
     if learningGame == data["game"]["id"] and learningSnakeID == data["you"]["id"]:
         learningGame = None
