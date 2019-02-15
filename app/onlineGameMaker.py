@@ -6,8 +6,6 @@ from time import sleep
 
 from random import randint
 
-browser = webdriver.Chrome()
-
 def addSpecificSnake(browser, name):
     selectSnake = browser.find_element_by_id('snakes-list')
     addTypedSnake = browser.find_element_by_id('add-snake-button')
@@ -19,6 +17,7 @@ def addSpecificSnake(browser, name):
 
 
 def createNewGame():
+    browser = webdriver.Chrome()
     #Load the page
     browser.get(('https://play.battlesnake.io/g/new/'))
     #Wait for the page to load
@@ -48,10 +47,9 @@ def createNewGame():
             addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
             #addSpecificSnake(browser, "DeclanMcIntosh/legless lizzard")
 
-    Hit Create button
+    #Hit Create button
     startGame.click()
 
-    sleep(100)
 
 
 createNewGame()
