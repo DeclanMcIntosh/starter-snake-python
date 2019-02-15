@@ -40,7 +40,7 @@ headZeroHP     = 0.8 # 0.8 <= head <= 0.9
 headMaxHP      = 0.9 # 0HP --------> max_health
 ## Board Encoding definition
 
-def startDummy(env, Comm):
+def startDummy(env, Comm, tryHard=False):
 
     
     nb_actions = env.action_space.n
@@ -91,7 +91,7 @@ def startDummy(env, Comm):
         
     while(True):
         if Comm.checkLoadNewFileCommand():
-            loadFromFile(dqn)
+            loadFromFile(dqn, tryHard)
             Comm.unAssertLoadNewFile()
         data = None
         while data == None:
@@ -112,17 +112,21 @@ def startDummy(env, Comm):
         Comm.giveNewMove(moveChosen)
 
 
-def loadFromFile(dqn):
+def loadFromFile(dqn, tryhard):
     '''
     attempts to load agent random files untill an appropriate file is found
     '''
     files = glob.glob("*.h5f")
-    try:
-        dqn.load_weights(random.choice(files))
-        print("loaded new file!")
-    except: 
-        print("Invalid file re-trying")
-        loadFromFile(dqn)
+    if tryhard == False:
+        try:
+            dqn.load_weights(random.choice(files))
+            print("loaded new file!")
+        except: 
+            print("Invalid file re-trying")
+            loadFromFile(dqn, tryhard)
+    if tryhard == True:
+        #Here we should load the newest save file, because were trying hard
+        do = "Something"
 
 
 
