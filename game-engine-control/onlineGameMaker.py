@@ -26,7 +26,7 @@ def createNewGame():
     #Find the buttons and feilds we need
     addRandomSnake = browser.find_element_by_id('add-random-snake-button')
     selectBoardSize = Select(browser.find_element_by_id('id_board_size'))
-    startGame = browser.find_element_by_xpath('/html/body/div[3]/main/section/div/div/form/button') # html body main section div div form 
+    startGame = browser.find_element_by_xpath('/html/body/div[3]/main/section/div/div/form/button')
 
     #chose board size
     boardSelect = randint(0,3)
@@ -39,16 +39,18 @@ def createNewGame():
     #Add Random snakes
     numSnakes = randint(2,8)
     ourSnakeNum = randint(0,numSnakes)
+    print(numSnakes)
     for value in range(0, numSnakes):
         if value != ourSnakeNum:
             #Add Random Snake
-            addRandomSnake.click()
+            addRandomSnake.click() # Sometimes adds ourself, we need to fix this
         else:
             #Add Our Snake
             addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
             #addSpecificSnake(browser, "DeclanMcIntosh/legless lizzard")
 
     #Hit Create button
+    sleep(0.5)
     startGame.click()
 
     sleep(100)
