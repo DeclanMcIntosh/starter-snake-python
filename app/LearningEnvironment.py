@@ -89,7 +89,6 @@ class Snekgame(gym.Env):
     def step(self, action):
         #print("step")
         self.diag_moves += 1
-        self.newMoveFlag = True
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -148,7 +147,6 @@ class Snekgame(gym.Env):
         #print("reset")
 
         self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
-        waitStartTime = time.time()
 
         self.diag_moves = 0
         self.diag_food = 0

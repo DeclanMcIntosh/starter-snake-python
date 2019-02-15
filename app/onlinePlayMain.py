@@ -62,6 +62,7 @@ def start():
     color = "#00FF00"
     #If we are currently not learning a game
     if learningGame == None and learningSnakeID == None:
+        print( "WE ARE PLAYING IN "+ data["game"]["id"])
         learningGame = data["game"]["id"]
         learningSnakeID = data["you"]["id"]
     return start_response(color)
@@ -101,6 +102,7 @@ def end():
     
     envi.endEnvi(won)
     if learningGame == data["game"]["id"] and learningSnakeID == data["you"]["id"]:
+        print("WE HAVE STOPED PLAYING THIS GAME ->" + data["game"]["id"])
         learningGame = None
         learningSnakeID = None
         createNewGame()
