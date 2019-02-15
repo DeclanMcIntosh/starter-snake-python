@@ -101,6 +101,9 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
         loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
         dqn.load_weights(loadFile)
 
+
+    #loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+    #dqn.save_weights(loadFile, overwrite=True)
     #Load Previous training 
 
     #Start traing

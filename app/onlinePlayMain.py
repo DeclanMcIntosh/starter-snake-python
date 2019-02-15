@@ -84,11 +84,7 @@ def move():
         if counter >= 9000:
             move = 'left'
     else:
-        comm.giveNewData(data)
-        sendMove = None
-        while sendMove == None:
-            sendMove = comm.getNewMove()
-        move = sendMove
+        move = 'left'
     return move_response(move)
 
 
@@ -123,11 +119,11 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=0)
+        Env=envi, max_board_size=sizeType, loadFileNumber=71)
     ).start()
-    threading.Thread(target=startDummy, kwargs=dict(
-        env = envi0,
-        Comm = comm,
-        tryHard = True
-        )
-    ).start()
+    #threading.Thread(target=startDummy, kwargs=dict(
+    #    env = envi0,
+    #    Comm = comm,
+    #    tryHard = True
+    #    )
+    #).start()

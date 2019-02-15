@@ -10,13 +10,7 @@ from gym import spaces
 from gym.utils import seeding
 
 #Variables for diagnostic document
-diag_id = ""
-diag_food = 0
-diag_snakes = 0
-diag_wl = 0
-diag_kills = 0
-diag_moves = 0
-csv_string = ""
+
 #Variables for diagnostic document
 
 max_board_size = 20
@@ -30,6 +24,14 @@ class Snekgame(gym.Env):
     '''Snek environment for snek game snek
     '''
     def __init__(self, max_board_size=7):
+
+        self.diag_moves = 0
+        self.diag_food = 0
+        self.diag_kills = 0
+        self.diag_snakes = 0
+        self.diag_wl = 0
+        self.csv_string = ""
+        self.diag_id = ""
         #stats
         self.wins = 0
         self.loses = 0
@@ -86,7 +88,7 @@ class Snekgame(gym.Env):
 
     def step(self, action):
         #print("step")
-        diag_moves += 1
+        self.diag_moves += 1
         self.newMoveFlag = True
         if action == 0:
             self.move = 'left' 
@@ -121,6 +123,7 @@ class Snekgame(gym.Env):
 
         if self.gameOverFlag and self.winFlag:
             reward = self.winReward
+            self.diag_wl += 1
             self.wins += 1
         
         if self.gameOverFlag and self.winFlag == False:
@@ -144,8 +147,15 @@ class Snekgame(gym.Env):
         self.gameOverFlag = False
         #print("reset")
 
-        self.diag.write(diag_id + "," + str(diag_food) + "," + str(diag_snakes) + "," + str(diag_wl) + "," + str(diag_kills) + "," + str(diag_moves) + ",")
+        self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
         waitStartTime = time.time()
+
+        self.diag_moves = 0
+        self.diag_food = 0
+        self.diag_id = ""
+        self.diag_kills = 0
+        self.diag_snakes = 0
+        self.diag_wl = 0
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
         #print("got json data for reset")
@@ -154,16 +164,9 @@ class Snekgame(gym.Env):
         #if self.wins > 0 or self.loses > 0:
         #    print("    Wins: " + str(self.wins) + "   Losses: " + str(self.loses) + "  Win %: " + str(100 * self.wins/(self.wins+ self.loses)) + "%")
         #print("end reset")
-        diag_moves = 0
-        diag_food = 0
-        diag_id = 0
-        diag_kills = 0
-        diag_snakes = 0
-        diag_wl = 0
-        observation , reward = self.findObservation(self.JsonServerData)
 
-        diag_id = observation["game"]["id"]
-        diag_snakes = len(observation["board"]["snakes"])
+        self.diag_id = self.JsonServerData["game"]["id"]
+        self.diag_snakes = len(self.JsonServerData["board"]["snakes"])
         #print("reset recived data")
         return observation
 
@@ -184,7 +187,7 @@ class Snekgame(gym.Env):
         # if currentHP has increased, snake must have eaten
         if (currentHP > self.previousHP):
             reward = self.eatReward
-            diag_food += 1
+            self.diag_food += 1
             rewardSet = True
         
         # if number of snakes alive has decreased, a snake must have died (either directly
@@ -192,7 +195,7 @@ class Snekgame(gym.Env):
         if (numSnakesAlive < self.previousNumSnakes):
             reward = self.killReward * (self.previousNumSnakes - numSnakesAlive)
             #print("killed")
-            diag_kills += 1
+            self.diag_kills += 1
             rewardSet = True
         
         board_state = np.zeros((self.max_board_size, self.max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
@@ -299,18 +302,6 @@ class Snekgame(gym.Env):
         #If nothing has been done, do nothing reward
         if rewardSet == False:
             reward = self.didNothingReward
-
-        #Check if the game has been won or lost, and adjust reward accordingly.
-        #This only adds to the turns reward as if you killed someone it might be worth.
-        if self.gameOverFlag == True:
-            if self.winFlag == True:
-                reward += self.winReward
-                diag_wl += 1
-            else: 
-                if diedOnWallFlag:
-                    reward += self.diedOnWallReward
-                else:
-                    reward += self.dieReward 
 
         #Flatten the output and place in a current hp value
         #Place centered
