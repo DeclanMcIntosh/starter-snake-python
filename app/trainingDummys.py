@@ -41,7 +41,7 @@ headMaxHP      = 0.9 # 0HP --------> max_health
 ## Board Encoding definition
 
 def startDummy(env, Comm, tryHard=False):
-
+    previousfileLength = 0
     
     nb_actions = env.action_space.n
 
@@ -81,7 +81,7 @@ def startDummy(env, Comm, tryHard=False):
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 
 
-    loadFromFile(dqn)
+    previousfileLength = loadFromFile(dqn, tryHard, previousfileLength)
 
     #Load Previous training 
 
@@ -91,7 +91,7 @@ def startDummy(env, Comm, tryHard=False):
         
     while(True):
         if Comm.checkLoadNewFileCommand():
-            loadFromFile(dqn, tryHard)
+            previousfileLength = loadFromFile(dqn, tryHard, previousfileLength)
             Comm.unAssertLoadNewFile()
         data = None
         while data == None:
@@ -112,21 +112,22 @@ def startDummy(env, Comm, tryHard=False):
         Comm.giveNewMove(moveChosen)
 
 
-def loadFromFile(dqn, tryhard):
+def loadFromFile(dqn, tryhard, previousfileLength):
     '''
     attempts to load agent random files untill an appropriate file is found
     '''
     files = glob.glob("*.h5f")
+    files.sort()
     if tryhard == False:
         try:
             dqn.load_weights(random.choice(files))
             print("loaded new file!")
         except: 
             print("Invalid file re-trying")
-            loadFromFile(dqn, tryhard)
-    if tryhard == True:
-        #Here we should load the newest save file, because were trying hard
-        do = "Something"
+            loadFromFile(dqn, tryhard, previousfileLength)
+    if tryhard == True and len(files) > previousfileLength:
+        dqn.load_weights(files[-1])
+    return len(files)
 
 
 

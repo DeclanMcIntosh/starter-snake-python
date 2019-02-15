@@ -44,8 +44,8 @@ def createNewGame():
             addRandomSnake.click()
         else:
             #Add Our Snake
-            addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
-            #addSpecificSnake(browser, "DeclanMcIntosh/legless lizzard")
+            #addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
+            addSpecificSnake(browser, "DeclanMcIntosh/legless lizzard")
 
     #Hit Create button
     startGame.click()

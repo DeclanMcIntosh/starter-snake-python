@@ -127,6 +127,7 @@ if __name__ == '__main__':
     ).start()
     threading.Thread(target=startDummy, kwargs=dict(
         env = envi0,
-        Comm = comm
+        Comm = comm,
+        tryHard = True
         )
     ).start()
