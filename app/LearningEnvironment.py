@@ -9,6 +9,17 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
+#Variables for diagnostic document
+diag_id = ""
+diag_food = 0
+diag_snakes = 0
+diag_wl = 0
+diag_kills = 0
+diag_moves = 0
+csv_string = ""
+#Variables for diagnostic document
+
+max_board_size = 20
 max_health = 100
 num_proximity_flags = 8
 num_health_flags = 1
@@ -26,7 +37,7 @@ class Snekgame(gym.Env):
 
         self.max_board_size=max_board_size
         #Diagnostic File
-        self.diag = open("diagnostic.txt", "a+")
+        self.diag = open("diagnostic.csv", "a+")
         #Snake Decided Moved
         self.move = 'left'
         self.newMoveFlag = False
@@ -74,8 +85,9 @@ class Snekgame(gym.Env):
         return [seed]
 
     def step(self, action):
-        #print(" ")
-        #print("start Step")
+        #print("step")
+        diag_moves += 1
+        self.newMoveFlag = True
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -130,6 +142,10 @@ class Snekgame(gym.Env):
         #print("start reset")
         self.winFlag = False
         self.gameOverFlag = False
+        #print("reset")
+
+        self.diag.write(diag_id + "," + str(diag_food) + "," + str(diag_snakes) + "," + str(diag_wl) + "," + str(diag_kills) + "," + str(diag_moves) + ",")
+        waitStartTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
         #print("got json data for reset")
@@ -138,6 +154,17 @@ class Snekgame(gym.Env):
         #if self.wins > 0 or self.loses > 0:
         #    print("    Wins: " + str(self.wins) + "   Losses: " + str(self.loses) + "  Win %: " + str(100 * self.wins/(self.wins+ self.loses)) + "%")
         #print("end reset")
+        diag_moves = 0
+        diag_food = 0
+        diag_id = 0
+        diag_kills = 0
+        diag_snakes = 0
+        diag_wl = 0
+        observation , reward = self.findObservation(self.JsonServerData)
+
+        diag_id = observation["game"]["id"]
+        diag_snakes = len(observation["board"]["snakes"])
+        #print("reset recived data")
         return observation
 
     def findObservation(self, data):
@@ -148,6 +175,7 @@ class Snekgame(gym.Env):
         reward = 0
 
         numSnakesAlive = len(board["snakes"])
+        
 
         currentHP = data["you"]["health"]
 
@@ -156,6 +184,7 @@ class Snekgame(gym.Env):
         # if currentHP has increased, snake must have eaten
         if (currentHP > self.previousHP):
             reward = self.eatReward
+            diag_food += 1
             rewardSet = True
         
         # if number of snakes alive has decreased, a snake must have died (either directly
@@ -163,6 +192,7 @@ class Snekgame(gym.Env):
         if (numSnakesAlive < self.previousNumSnakes):
             reward = self.killReward * (self.previousNumSnakes - numSnakesAlive)
             #print("killed")
+            diag_kills += 1
             rewardSet = True
         
         board_state = np.zeros((self.max_board_size, self.max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
@@ -272,6 +302,15 @@ class Snekgame(gym.Env):
 
         #Check if the game has been won or lost, and adjust reward accordingly.
         #This only adds to the turns reward as if you killed someone it might be worth.
+        if self.gameOverFlag == True:
+            if self.winFlag == True:
+                reward += self.winReward
+                diag_wl += 1
+            else: 
+                if diedOnWallFlag:
+                    reward += self.diedOnWallReward
+                else:
+                    reward += self.dieReward 
 
         #Flatten the output and place in a current hp value
         #Place centered
