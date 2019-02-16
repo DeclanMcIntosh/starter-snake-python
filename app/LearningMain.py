@@ -94,8 +94,8 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     # even the metrics!
     memory = SequentialMemory(limit=memoryAllocation, window_length=1)
     policy = BoltzmannQPolicy()
-    dqn = DQNAgent(model=model, batch_size=128, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
-    dqn.compile(nadam(lr=0.001), metrics=['mae']) 
+    dqn = DQNAgent(model=model, batch_size=256, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
+    dqn.compile(nadam(lr=0.01), metrics=['mae']) 
 
     if load_file_number >= 0:
         loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
