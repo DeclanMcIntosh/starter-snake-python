@@ -4,7 +4,7 @@ import glob
 import os
 from random import randint, choice
 import time
-
+from onlineGameMaker import *
 import gym
 from gym import spaces
 from gym.utils import seeding
@@ -32,10 +32,13 @@ class Snekgame(gym.Env):
         self.diag_wl = 0
         self.csv_string = ""
         self.diag_id = ""
+        self.currentGame = ""
+        self.currentSnake = ""
         #stats
         self.wins = 0
         self.loses = 0
         self.wonQuestionMark = False
+        self.onlineEnabled = False
 
         self.max_board_size=max_board_size
         #Diagnostic File
@@ -52,8 +55,8 @@ class Snekgame(gym.Env):
         self.init_wholesome_boi()
 
         ## Board Encoding defintion 
-        self.noGo           = 1.0
-        self.empty          = 0
+        self.noGo           = 0
+        self.empty          = 1.0
         self.food           = -0.25
         self.ourHead        = -1
         self.bodyNorth      = 0.7
@@ -99,19 +102,24 @@ class Snekgame(gym.Env):
             self.move = 'down' 
         
         badMove = False
-
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
             badMove = True
         #print("Filtered Move " + self.move)
         #print(self.currSafeMoves)
-
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
 
         #Wait for new board state
+        startWaitTime = time.time()
         while self.newJsonDataFlag == False and self.gameOverFlag == False:
             time.sleep(0.01)
+            if time.time()-startWaitTime > 6 and self.onlineEnabled:
+                self.gameOverFlag = True 
+                self.winFlag = False
+                self.currentGame = ""
+                self.currentSnake = ""
+                break
         #print("got JSON for step")
         #Reset Flag
         self.newJsonDataFlag = False
@@ -144,7 +152,8 @@ class Snekgame(gym.Env):
         #print("start reset")
         self.winFlag = False
         self.gameOverFlag = False
-        #print("reset")
+        print("")
+        print("Wins: " + str(self.wins) + "     Losses: " + str(self.loses))
 
         self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
 
@@ -154,8 +163,13 @@ class Snekgame(gym.Env):
         self.diag_kills = 0
         self.diag_snakes = 0
         self.diag_wl = 0
+        if self.onlineEnabled:
+            createNewGame()
+        startWaitTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
+            if time.time() - startWaitTime > 7.5 and self.onlineEnabled:
+                createNewGame()
         #print("got json data for reset")
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
@@ -196,7 +210,7 @@ class Snekgame(gym.Env):
             self.diag_kills += 1
             rewardSet = True
         
-        board_state = np.zeros((self.max_board_size, self.max_board_size), dtype=np.float32) # numpy array of size we defined for self.observation_space 
+        board_state = np.full((self.max_board_size, self.max_board_size), fill_value=self.empty, dtype=np.float32) # numpy array of size we defined for self.observation_space 
         
         # Fill wall locations
         for row in range(0, board["height"]):
@@ -387,6 +401,16 @@ class Snekgame(gym.Env):
 
         return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
 
+    def setCurrentGameParams(self, currentGame, currentSnake):
+        self.currentGame = currentGame
+        self.currentSnake = currentSnake
+
+    def getCurrentGame(self):
+        return self.currentGame
+
+    def getCurrentSnake(self):
+        return self.currentSnake
+
     # all around good boi. everyone's favourite
     def init_wholesome_boi(self):
         ## Reward definitions
@@ -499,9 +523,12 @@ class Snekgame(gym.Env):
     def init_just_win_aggresive(self):
         ## Reward definitions
         self.dieReward          = -200
-        self.didNothingReward   = 0.2
-        self.eatReward          = 0.2
+        self.didNothingReward   = 1
+        self.eatReward          = 5
         self.killReward         = 25
         self.winReward          = 200
         self.diedOnWallReward   = -200
         ## Reward definitions
+
+    def enableOnline(self, state):
+        self.onlineEnabled = state

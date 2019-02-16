@@ -4,31 +4,19 @@ import random
 import bottle
 import threading
 import time
-from onlineGameMaker import createNewGame
 from LearningEnvironment import *
 from LearningMain import *
-from trainingDummys import *
 
 from api import ping_response, start_response, move_response, end_response
 
 #Flags for what kind of network we are training
 sizeType = 19
+currentGame = ""
+currentSnake = ""
 
-#Main learning
 envi = Snekgame(max_board_size=sizeType)
 envi.init_just_win_aggresive()
-
-#Training Dummys
-envi0 = Snekgame(max_board_size=sizeType)
-envi0.init_wholesome_pp()
-
-comm = threadComms()
-
-
-#Game parsing 
-learningGame = None
-learningSnakeID  = None
-
+envi.enableOnline(True)
 
 @bottle.route('/')
 def index():
@@ -56,56 +44,54 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    global learningGame
-    global learningSnakeID
+    global currentGame
+    global currentSnake
+    #print("start Request recived")
     data = bottle.request.json
     color = "#00FF00"
-    #If we are currently not learning a game
-    if learningGame == None and learningSnakeID == None:
-        print( "WE ARE PLAYING IN "+ data["game"]["id"])
-        learningGame = data["game"]["id"]
-        learningSnakeID = data["you"]["id"]
+    if currentGame == "" and currentSnake == "":
+        envi.setCurrentGameParams(data["game"]["id"], data["you"]["id"])
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
-    global learningGame
-    global learningSnakeID
+    global currentGame
+    global currentSnake
+    #print("move Request recived")
     global envi
     data = bottle.request.json
-    if learningGame == data["game"]["id"] and learningSnakeID == data["you"]["id"]:
+    move = None
+    counter = 0 
+    if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
         envi.sendNewData(data)
-        move = None
-        counter = 0 
         while move == None and counter < 9000:
             move = envi.getMove()
             time.sleep(0.0001)
             counter += 1
         if counter >= 9000:
-            move = 'left'
+            move_response("left")
     else:
-        move = 'left'
+        move = "left"
+    #print("move Request responded")
     return move_response(move)
 
 
 @bottle.post('/end')
 def end():
-    global learningGame
-    global learningSnakeID
+    global currentGame
+    global currentSnake
     data = bottle.request.json
-
-    snakeNames = []
-    for snake in data["board"]["snakes"]:
-        snakeNames.append(snake["name"])
-    won = len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames)
-    
-    envi.endEnvi(won)
-    if learningGame == data["game"]["id"] and learningSnakeID == data["you"]["id"]:
-        print("WE HAVE STOPED PLAYING THIS GAME ->" + data["game"]["id"])
-        learningGame = None
-        learningSnakeID = None
-        createNewGame()
+    won = False
+    if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
+        envi.setCurrentGameParams("", "")
+        snakeNames = []
+        for snake in data["board"]["snakes"]:
+            snakeNames.append(snake["name"])
+        if len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames):
+            won = True
+        envi.endEnvi(won)
+        #createNewGame()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -121,11 +107,5 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=71)
+        Env=envi, max_board_size=sizeType, loadFileNumber=1)
     ).start()
-    #threading.Thread(target=startDummy, kwargs=dict(
-    #    env = envi0,
-    #    Comm = comm,
-    #    tryHard = True
-    #    )
-    #).start()

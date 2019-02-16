@@ -15,6 +15,7 @@ sizeType = 19
 
 envi = Snekgame(max_board_size=sizeType)
 envi.init_wholesome_pp()
+envi.enableOnline(False)
 
 comm = threadComms()
 
