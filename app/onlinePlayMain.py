@@ -16,7 +16,7 @@ currentSnake = ""
 
 envi = Snekgame(max_board_size=sizeType)
 envi.init_just_win_aggresive()
-envi.enableOnline(True)
+#envi.enableOnline(True)
 
 @bottle.route('/')
 def index():
@@ -83,12 +83,13 @@ def end():
     global currentSnake
     data = bottle.request.json
     won = False
+    print(data)
     if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
         envi.setCurrentGameParams("", "")
         snakeNames = []
         for snake in data["board"]["snakes"]:
             snakeNames.append(snake["name"])
-        if len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames or "0" in snakeNames):
+        if len(data["board"]["snakes"]) <= 1 and (data["you"]["name"] in snakeNames or "0" in snakeNames):
             won = True
         envi.endEnvi(won)
         #createNewGame()

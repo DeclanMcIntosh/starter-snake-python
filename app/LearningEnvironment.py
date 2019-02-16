@@ -114,7 +114,7 @@ class Snekgame(gym.Env):
         startWaitTime = time.time()
         while self.newJsonDataFlag == False and self.gameOverFlag == False:
             time.sleep(0.01)
-            if time.time()-startWaitTime > 6 and self.onlineEnabled:
+            if time.time()-startWaitTime > 3 and self.onlineEnabled:
                 self.gameOverFlag = True 
                 self.winFlag = False
                 self.currentGame = ""
@@ -168,7 +168,7 @@ class Snekgame(gym.Env):
         startWaitTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-            if time.time() - startWaitTime > 7.5 and self.onlineEnabled:
+            if time.time() - startWaitTime > 3 and self.onlineEnabled:
                 createNewGame()
         #print("got json data for reset")
         self.newJsonDataFlag = False
