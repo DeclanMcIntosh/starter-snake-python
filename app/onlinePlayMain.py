@@ -16,7 +16,7 @@ currentSnake = ""
 
 envi = Snekgame(max_board_size=sizeType)
 envi.init_just_win_aggresive()
-#envi.enableOnline(True)
+envi.enableOnline(True)
 
 @bottle.route('/')
 def index():
