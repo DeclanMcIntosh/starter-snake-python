@@ -102,8 +102,8 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     memory = SequentialMemory(limit=memoryAllocation, window_length=4)
     #policy = BoltzmannQPolicy()
     policy =  GreedyQPolicy()
-    dqn = DQNAgent(model=model, batch_size=32, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True, gamma=.9)
-    dqn.compile(nadam(lr=0.025), metrics=['mae']) 
+    dqn = DQNAgent(model=model, batch_size=32, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True, gamma=.95)
+    dqn.compile(nadam(lr=0.01), metrics=['mae']) 
 
     if load_file_number >= 0:
         loadFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
@@ -117,6 +117,8 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     #Start traing
     # Ctrl + C.
     # We train and store 
+
+    #SELF NOTE CHANGED TO ONLY POSITIVE REWARDS BECAUSE SNAKE WAS TOO AFFRAID TO DIE AS IT LOST SO OFTEN
 
     counter = 0
     while True:

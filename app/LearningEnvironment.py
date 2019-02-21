@@ -531,12 +531,12 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = -0.1
+        self.dieReward          = -25
+        self.didNothingReward   = 1
         self.eatReward          = 25
-        self.killReward         = 35
-        self.winReward          = 250
-        self.diedOnWallReward   = -100
+        self.killReward         = 50
+        self.winReward          = 25
+        self.diedOnWallReward   = -25
         ## Reward definitions
 
     def enableOnline(self, state):
