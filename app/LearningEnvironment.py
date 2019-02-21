@@ -247,7 +247,8 @@ class Snekgame(gym.Env):
 
             # Fill enemy snake body segment locations
             unused, enemy_head_x, enemy_head_y, enemy_tail_x, enemy_tail_y = self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
-            if (enemy_length != 3 or enemy_snake["body"][1] != enemy_snake["body"][2]):
+            if (enemy_snake["body"][enemy_length - 1] != enemy_snake["body"][enemy_length - 2]):
+                # If tail is not overlapping with its body
                 tails.append((enemy_tail_x, enemy_tail_y))
 
         # Fill our snake body segment locations
@@ -268,6 +269,8 @@ class Snekgame(gym.Env):
         proximity_flags = np.append(np.ones(4), np.zeros(4))
         # pre-make flags with no-go and no food
         safeMoves = []
+        secondLastBodySegment = data["you"]["body"][currentLength - 2]
+        tail = data["you"]["body"][currentLength - 1]
         if (head_x >= 0 and head_x < self.max_board_size and head_y >= 0 and head_y < self.max_board_size):
             # if snek is not dead
             noGo_index = 0
@@ -275,7 +278,7 @@ class Snekgame(gym.Env):
             if (head_y - 1) >= 0:
                 board_value =  board_state[head_x, head_y - 1]
                 # if up is not a wall
-                if ((head_x,head_y - 1) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x,head_y - 1) in tails) or \
+                if ((head_x,head_y - 1) == (tail_x, tail_y) and tail != secondLastBodySegment or ((head_x,head_y - 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index] = self.empty
@@ -286,7 +289,7 @@ class Snekgame(gym.Env):
             if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if ((head_x,head_y + 1) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x,head_y + 1) in tails) or \
+                if ((head_x,head_y + 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x,head_y + 1) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 1] = self.empty
@@ -297,7 +300,7 @@ class Snekgame(gym.Env):
             if (head_x - 1) >= 0:
                 board_value =  board_state[head_x - 1, head_y]
                 # if left is not a wall
-                if ((head_x - 1,head_y) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x - 1,head_y) in tails) or \
+                if ((head_x - 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x - 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 2] = self.empty
@@ -308,7 +311,7 @@ class Snekgame(gym.Env):
             if (head_x + 1) < self.max_board_size:
                 board_value =  board_state[head_x + 1, head_y]
                 # if right is not a wall
-                if ((head_x + 1,head_y) == (tail_x, tail_y) and data["turn"] > 3) or ((head_x + 1,head_y) in tails) or \
+                if ((head_x + 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x + 1,head_y) in tails) or \
                     board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 3] = self.empty
