@@ -13,6 +13,7 @@ from rl.agents.cem  import CEMAgent
 
 from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
+from rl.policy import GreedyQPolicy
 from rl.memory import SequentialMemory
 
 def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=800000):
@@ -62,16 +63,22 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
 
     # 361 + 5 inputs
     if max_board_size == 19:
-        layer0Size = 512
-        layer1Size = 256
-        layer2Size = 128
-        layer3Size = 64
-        layer4Size = 32
-        layer5Size = 16
-
+        #layer0Size = 512
+        #layer1Size = 256
+        #layer2Size = 128
+        #layer3Size = 64
+        #layer4Size = 32
+        #layer5Size = 16
+        #Version 2
+        layer0Size = 8192
+        layer1Size = 8192
+        layer2Size = 8192
+        layer3Size = 4096
+        layer4Size = 4096
+        layer5Size = 0
     # Next, we build a very simple model. 
     model = Sequential()
-    model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
+    model.add(Flatten(input_shape=(4,) + env.observation_space.shape))
     model.add(Dense(layer0Size))
     model.add(Activation('relu'))
     model.add(Dense(layer1Size))
@@ -82,8 +89,8 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     model.add(Activation('relu'))
     model.add(Dense(layer4Size))
     model.add(Activation('relu'))
-    model.add(Dense(layer5Size))
-    model.add(Activation('relu'))
+    #model.add(Dense(layer5Size))
+    #model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
@@ -92,17 +99,18 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=memoryAllocation, window_length=1)
-    policy = BoltzmannQPolicy()
-    dqn = DQNAgent(model=model, batch_size=256, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
-    dqn.compile(nadam(lr=0.01), metrics=['mae']) 
+    memory = SequentialMemory(limit=memoryAllocation, window_length=4)
+    #policy = BoltzmannQPolicy()
+    policy =  GreedyQPolicy()
+    dqn = DQNAgent(model=model, batch_size=32, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True, gamma=.9)
+    dqn.compile(nadam(lr=0.025), metrics=['mae']) 
 
     if load_file_number >= 0:
-        loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+        loadFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
         dqn.load_weights(loadFile)
 
 
-    #loadFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
+    #loadFile = "BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) +  "_SAVENUMBER_" + str(load_file_number) + ".h5f"
     #dqn.save_weights(loadFile, overwrite=True)
     #Load Previous training 
 
@@ -112,9 +120,11 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
 
     counter = 0
     while True:
-        dqn.fit(env, nb_steps=10001, visualize=False, verbose=1)
+        #saveFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
+        #dqn.save_weights(saveFile, overwrite=True)
+        dqn.fit(env, nb_steps=10010, visualize=False, verbose=1)
         counter+=1
-        saveFile = "0.2PerStep_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
+        saveFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
 
 

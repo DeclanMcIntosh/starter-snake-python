@@ -49,8 +49,9 @@ def start():
     #print("start Request recived")
     data = bottle.request.json
     color = "#00FF00"
-    if currentGame == "" and currentSnake == "":
-        envi.setCurrentGameParams(data["game"]["id"], data["you"]["id"])
+    if data != None:
+        if currentGame == "" and currentSnake == "" and data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:
+            envi.setCurrentGameParams(data["game"]["id"], data["you"]["id"])
     return start_response(color)
 
 
@@ -63,14 +64,17 @@ def move():
     data = bottle.request.json
     move = None
     counter = 0 
-    if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
-        envi.sendNewData(data)
-        while move == None and counter < 9000:
-            move = envi.getMove()
-            time.sleep(0.0001)
-            counter += 1
-        if counter >= 9000:
-            move_response("left")
+    if data != None:
+        if  data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
+            envi.sendNewData(data)
+            while move == None and counter < 9000:
+                move = envi.getMove()
+                time.sleep(0.0001)
+                counter += 1
+            if counter >= 9000:
+                move_response("left")
+        else:
+            move = "left"
     else:
         move = "left"
     #print("move Request responded")
@@ -83,16 +87,17 @@ def end():
     global currentSnake
     data = bottle.request.json
     won = False
-    print(data)
-    if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
-        envi.setCurrentGameParams("", "")
-        snakeNames = []
-        for snake in data["board"]["snakes"]:
-            snakeNames.append(snake["name"])
-        if len(data["board"]["snakes"]) <= 1 and (data["you"]["name"] in snakeNames or "0" in snakeNames):
-            won = True
-        envi.endEnvi(won)
-        #createNewGame()
+    #print(data)
+    if  data != None:
+        if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
+            envi.setCurrentGameParams("", "")
+            snakeNames = []
+            for snake in data["board"]["snakes"]:
+                snakeNames.append(snake["name"])
+            if len(data["board"]["snakes"]) <= 1 and (data["you"]["name"] in snakeNames):
+                won = True
+            envi.endEnvi(won)
+            #createNewGame()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -108,5 +113,5 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=1)
+        Env=envi, max_board_size=sizeType, loadFileNumber=18)
     ).start()

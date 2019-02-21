@@ -18,6 +18,8 @@ envi.init_wholesome_pp()
 envi.enableOnline(False)
 
 comm = threadComms()
+comm.assertLoadNewFile()
+oepnNewFileCounter = 0
 
 @bottle.route('/')
 def index():
@@ -47,26 +49,31 @@ def ping():
 def start():
     data = bottle.request.json
     color = "#00FF00"
-    comm.assertLoadNewFile()
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
+    global oepnNewFileCounter
     #print("move Request recived")
     start = time.time()
     data = bottle.request.json
-    traingSnakeDead = True
+    traingSnakeDead = True #TODO TO USE THIS FOR OFLINE TRAINING CHANGE THIS REEEEE
     #if the snake we are traning is not in the game kill yourself
     for snake in data["board"]["snakes"]:
-        if snake["name"] == "0" or snake["name"] == "legless lizzard":
+        if snake["name"] != data["you"]["name"]:
             traingSnakeDead = False
     if traingSnakeDead:
+        print("mainSnakedead")
         return move_response("down")
     comm.giveNewData(data)
     sendMove = None
     while sendMove == None:
         sendMove = comm.getNewMove()
+    oepnNewFileCounter += 1
+    if oepnNewFileCounter > 17500:
+        oepnNewFileCounter = 0
+        comm.assertLoadNewFile()
     print("move made in " + str(time.time() - start))
     return move_response(sendMove)
 
@@ -90,6 +97,7 @@ if __name__ == '__main__':
     ).start()
     threading.Thread(target=startDummy, kwargs=dict(
         env = envi,
-        Comm = comm
+        Comm = comm,
+        tryHard=True
         )
     ).start()

@@ -37,6 +37,9 @@ class Snekgame(gym.Env):
         #stats
         self.wins = 0
         self.loses = 0
+        self.gameLengthAvg = 0
+        self.averageFoodEaten = 0
+        self.lastGameLength = 0
         self.wonQuestionMark = False
         self.onlineEnabled = False
 
@@ -57,12 +60,12 @@ class Snekgame(gym.Env):
         ## Board Encoding defintion 
         self.noGo           = 0
         self.empty          = 1.0
-        self.food           = -0.25
+        self.food           = -0.4
         self.ourHead        = -1
-        self.bodyNorth      = 0.7
-        self.bodySouth      = 0.6
-        self.bodyEast       = 0.5
-        self.bodyWest       = 0.4
+        self.bodyNorth      = 0.4 #0.7
+        self.bodySouth      = 0.4 #0.6
+        self.bodyEast       = 0.4 #0.5
+        self.bodyWest       = 0.4 #0.4
         self.headZeroHP     = 0.8 # 0.8 <= head <= 0.9
         self.headMaxHP      = 0.9 # 0HP --------> max_health
         ## Board Encoding definition
@@ -91,6 +94,8 @@ class Snekgame(gym.Env):
 
     def step(self, action):
         #print("step")
+        self.lastGameLength += 1
+
         self.diag_moves += 1
         if action == 0:
             self.move = 'left' 
@@ -114,7 +119,8 @@ class Snekgame(gym.Env):
         startWaitTime = time.time()
         while self.newJsonDataFlag == False and self.gameOverFlag == False:
             time.sleep(0.01)
-            if time.time()-startWaitTime > 3 and self.onlineEnabled:
+            # LOCKUP NOT HERE print("waiting for new data")
+            if time.time()-startWaitTime > 5 and self.onlineEnabled and self.JsonServerData != None:
                 self.gameOverFlag = True 
                 self.winFlag = False
                 self.currentGame = ""
@@ -124,9 +130,9 @@ class Snekgame(gym.Env):
         #Reset Flag
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
-    
+        #print("found observation")
         if badMove:
-            reward = -2
+            reward = -2.5
 
         if self.gameOverFlag and self.winFlag:
             reward = self.winReward
@@ -152,9 +158,11 @@ class Snekgame(gym.Env):
         #print("start reset")
         self.winFlag = False
         self.gameOverFlag = False
+        self.gameLengthAvg = (self.gameLengthAvg/2) + (self.lastGameLength/2)
+        self.averageFoodEaten = (self.averageFoodEaten/2) + (self.diag_food/2)
         print("")
-        print("Wins: " + str(self.wins) + "     Losses: " + str(self.loses))
-
+        print("Wins: <" + str(self.wins) + "> Losses: <" + str(self.loses) + "> Avg Game Len: <" + str(self.gameLengthAvg) + "> Avf Food Ate: <" + str(self.averageFoodEaten) + "> Win Rate: <" + str(self.wins * 100 / (self.wins + self.loses + 1)) + ">")
+        self.lastGameLength = 0  
         self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
 
         self.diag_moves = 0
@@ -168,8 +176,10 @@ class Snekgame(gym.Env):
         startWaitTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
-            if time.time() - startWaitTime > 3 and self.onlineEnabled:
+            # LOCUP NOT HERE print("wating for new game")
+            if time.time() - startWaitTime > 1 and self.onlineEnabled:
                 createNewGame()
+                startWaitTime = time.time()
         #print("got json data for reset")
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
@@ -197,7 +207,7 @@ class Snekgame(gym.Env):
         currentLength = len(data["you"]["body"])
 
         # if currentHP has increased, snake must have eaten
-        if (currentHP > self.previousHP):
+        if (currentHP >= self.previousHP):
             reward = self.eatReward
             self.diag_food += 1
             rewardSet = True
@@ -255,7 +265,6 @@ class Snekgame(gym.Env):
         # Ordering of proximity_flags: [no-go Up, no-go Down, no-go Left, no-go Right, 
         #                               food Up, food Down, food Left, food Right]
         # IMPORTANT: our own tail is treated as safe move
-        # TODO treat other tails as safe move
         proximity_flags = np.append(np.ones(4), np.zeros(4))
         # pre-make flags with no-go and no food
         safeMoves = []
@@ -522,12 +531,12 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -200
-        self.didNothingReward   = 1
-        self.eatReward          = 5
-        self.killReward         = 25
-        self.winReward          = 200
-        self.diedOnWallReward   = -200
+        self.dieReward          = -100
+        self.didNothingReward   = -0.1
+        self.eatReward          = 25
+        self.killReward         = 35
+        self.winReward          = 250
+        self.diedOnWallReward   = -100
         ## Reward definitions
 
     def enableOnline(self, state):

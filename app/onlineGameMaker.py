@@ -25,45 +25,51 @@ def addSpecificSnake(browser, name):
 
 
 def createNewGame():
-    #chrome_options = Options()
-    #chrome_options.add_argument("--window-size=1920,1080")
-    #browser = webdriver.Chrome(chrome_options=chrome_options)
+    try:
+        #chrome_options = Options()
+        #chrome_options.add_argument("--window-size=1920,1080")
+        #browser = webdriver.Chrome(chrome_options=chrome_options)
 
-    #Load the page
-    browser.get(('https://play.battlesnake.io/g/new/'))
-    #Wait for the page to load
-    sleep(0.5)
-    #Find the buttons and feilds we need
-    addRandomSnake = browser.find_element_by_id('add-random-snake-button')
-    selectBoardSize = Select(browser.find_element_by_id('id_board_size'))
-    startGame = browser.find_element_by_xpath('/html/body/div[3]/main/section/div/div/form/button') # html body main section div div form 
+        #Load the page
+        browser.get(('https://play.battlesnake.io/g/new/'))
+        #Wait for the page to load
+        sleep(0.5)
+        #Find the buttons and feilds we need
+        addRandomSnake = browser.find_element_by_id('add-random-snake-button')
+        selectBoardSize = Select(browser.find_element_by_id('id_board_size'))
+        startGame = browser.find_element_by_xpath('/html/body/div[3]/main/section/div/div/form/button') # html body main section div div form 
 
-    #chose board size
-    boardSelect = randint(0,3)
-    if boardSelect == 0:
-        selectBoardSize.select_by_visible_text('Large - 19x19')
-        #selectBoardSize.select_by_visible_text('Small - 7x7')
-    if boardSelect == 1:
-        selectBoardSize.select_by_visible_text('Medium - 11x11')
-    if boardSelect == 2:
-        selectBoardSize.select_by_visible_text('Small - 7x7')
-    #Add Random snakes
-    numSnakes = randint(4,8)
-    ourSnakeNum = randint(0,numSnakes-1)
-    for value in range(0, numSnakes):
-        if value != ourSnakeNum:
-            #Add Random Snake
-            sleep(0.1)
-            addRandomSnake.click()
-        else:
-            sleep(0.1)
-            #Add Our Snake
-            #addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
-            addSpecificSnake(browser, "DeclanMcIntosh/legless_lizzard")
+        #chose board size
+        boardSelect = randint(0,3)
+        if boardSelect == 0:
+            selectBoardSize.select_by_visible_text('Large - 19x19')
+            #selectBoardSize.select_by_visible_text('Small - 7x7')
+        if boardSelect == 1:
+            selectBoardSize.select_by_visible_text('Medium - 11x11')
+        if boardSelect == 2:
+            selectBoardSize.select_by_visible_text('Small - 7x7')
+        #Add Random snakes
+        if boardSelect == 1 or boardSelect == 2:
+            numSnakes = randint(2,8)
+        if boardSelect == 0 :
+            numSnakes = randint(2,5)
+        ourSnakeNum = randint(0,numSnakes-1)
+        for value in range(0, numSnakes):
+            if value != ourSnakeNum:
+                #Add Random Snake
+                sleep(0.1)
+                addRandomSnake.click()
+            else:
+                sleep(0.1)
+                #Add Our Snake
+                #addSpecificSnake(browser, "DeclanMcIntosh/trainingDummy")
+                addSpecificSnake(browser, "DeclanMcIntosh/legless_lizzard")
 
-    #Hit Create button
-    sleep(0.1)
-    startGame.click()
+        #Hit Create button
+        sleep(0.1)
+        startGame.click()
+    except Exception:
+        pass
 
 
 
