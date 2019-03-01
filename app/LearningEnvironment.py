@@ -51,6 +51,7 @@ class Snekgame(gym.Env):
         self.newMoveFlag = False
         self.gameOverFlag = False
         self.currSafeMoves = []
+        self.headButtSafeMoves = []
         self.winFlag = False
         #Snake Decided Moved
 
@@ -123,6 +124,10 @@ class Snekgame(gym.Env):
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
             badMove = True
+
+        if self.move not in self.headButtSafeMoves and len(self.headButtSafeMoves) > 0:
+            self.move = choice(self.headButtSafeMoves)
+            badMove = True
         #print("Filtered Move " + self.move)
         #print(self.currSafeMoves)
         #Let other thread know a new move is avalible 
@@ -142,7 +147,7 @@ class Snekgame(gym.Env):
         #print("got JSON for step")
         #Reset Flag
         self.newJsonDataFlag = False
-        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSafeMoves, self.headButtSafeMoves = self.findObservation(self.JsonServerData)
         #print("found observation")
         if badMove:
             reward = -2
@@ -195,7 +200,7 @@ class Snekgame(gym.Env):
                 startWaitTime = time.time()
         #print("got json data for reset")
         self.newJsonDataFlag = False
-        observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
+        observation, reward, self.currSafeMoves, unused = self.findObservation(self.JsonServerData)
         #if self.wins > 0 or self.loses > 0:
         #    print("    Wins: " + str(self.wins) + "   Losses: " + str(self.loses) + "  Win %: " + str(100 * self.wins/(self.wins+ self.loses)) + "%")
         #print("end reset")
@@ -204,6 +209,32 @@ class Snekgame(gym.Env):
         self.diag_snakes = len(self.JsonServerData["board"]["snakes"])
         #print("reset recived data")
         return observation
+
+    def headonheadfilter(self, boardstate, safeMoves, head_x, head_y):
+        headbuttSaveMoves = []
+        w = boardstate[head_x-2, head_y]
+        nw = boardstate[head_x-1, head_y-1]
+        n = boardstate[head_x, head_y-2]
+        ne = boardstate[head_x+1, head_y-1]
+        e = boardstate[head_x+2, head_y]
+        se = boardstate[head_x+1, head_y+1]
+        s = boardstate[head_x, head_y+2]
+        sw = boardstate[head_x-1, head_y+1]
+        for move in safeMoves:
+            if move == "up":
+                if (n > 0.9 or n < 0.8) and (nw > 0.9 or nw < 0.8) and (ne > 0.9 or ne < 0.8):
+                    headbuttSaveMoves.append("up")
+            if move == "down":
+                if (s > 0.9 or s < 0.8) and (sw > 0.9 or sw < 0.8) and (se > 0.9 or se < 0.8):
+                    headbuttSaveMoves.append("down")
+            if move == "left":
+                if (w > 0.9 or w < 0.8) and (nw > 0.9 or nw < 0.8) and (sw > 0.9 or sw < 0.8):
+                    headbuttSaveMoves.append("left")
+            if move == "right":
+                if (e > 0.9 or e < 0.8) and (ne > 0.9 or ne < 0.8) and (se > 0.9 or se < 0.8):
+                     headbuttSaveMoves.append("right")
+
+        return headbuttSaveMoves
 
     def findObservation(self, data):
         board = data["board"]
@@ -327,7 +358,8 @@ class Snekgame(gym.Env):
                         safeMoves.append('right')
 
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
-        
+            
+        headButtSafeMoves = self.headonheadfilter(board_state, safeMoves, head_x, head_y)
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
@@ -360,8 +392,8 @@ class Snekgame(gym.Env):
         #observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
         #observation[(self.max_board_size * self.max_board_size)] = currentHP
         #observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
-        return observation, reward, safeMoves
-
+        return observation, reward, safeMoves, headButtSafeMoves
+    
     def endEnvi(self, win):
         self.gameOverFlag = True
         self.winFlag = win
