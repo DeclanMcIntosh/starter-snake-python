@@ -17,8 +17,8 @@ max_board_size = 20
 max_health = 100
 num_proximity_flags = 8
 num_health_flags = 1
-viewsize = 38
-centerpoint = 19
+viewsize = 25# OLD VERSION FOR DEEP NETWORK -> 29 # must be odd
+centerpoint = 19 # must be odd
 
 class Snekgame(gym.Env):
     '''Snek environment for snek game snek
@@ -37,7 +37,7 @@ class Snekgame(gym.Env):
         #stats
         self.wins = 0
         self.loses = 0
-        self.gameLengthAvg = 0
+        self.totalSteps = 0
         self.averageFoodEaten = 0
         self.lastGameLength = 0
         self.wonQuestionMark = False
@@ -58,16 +58,29 @@ class Snekgame(gym.Env):
         self.init_wholesome_boi()
 
         ## Board Encoding defintion 
-        self.noGo           = 0
+        #self.noGo           = 0
+        #self.empty          = 1.0
+        #self.food           = -0.4
+        #self.ourHead        = -1
+        #self.bodyNorth      = 0.7
+        #self.bodySouth      = 0.6
+        #self.bodyEast       = 0.5
+        #self.bodyWest       = 0.4
+        #self.headZeroHP     = 0.8 # 0.8 <= head <= 0.9
+        #self.headMaxHP      = 0.9 # 0HP --------> max_health
+        ## Board Encoding definition
+
+        ## Board Encoding defintion 
+        self.noGo           = -1.0
         self.empty          = 1.0
-        self.food           = -0.4
-        self.ourHead        = -1
-        self.bodyNorth      = 0.4 #0.7
-        self.bodySouth      = 0.4 #0.6
-        self.bodyEast       = 0.4 #0.5
-        self.bodyWest       = 0.4 #0.4
-        self.headZeroHP     = 0.8 # 0.8 <= head <= 0.9
-        self.headMaxHP      = 0.9 # 0HP --------> max_health
+        self.food           = -0.2
+        self.ourHead        = 0
+        self.bodyNorth      = 0.2 #0.7
+        self.bodySouth      = 0.2 #0.6
+        self.bodyEast       = 0.2 #0.5
+        self.bodyWest       = 0.2 #0.4
+        self.headZeroHP     = 0.5  #0.9 # 0.8 <= head <= 0.9
+        self.headMaxHP      = 0.5  #0.9 # 0HP --------> max_health
         ## Board Encoding definition
 
         self.boundsUpper = 1
@@ -94,7 +107,7 @@ class Snekgame(gym.Env):
 
     def step(self, action):
         #print("step")
-        self.lastGameLength += 1
+        self.totalSteps += 1
 
         self.diag_moves += 1
         if action == 0:
@@ -132,10 +145,10 @@ class Snekgame(gym.Env):
         observation, reward, self.currSafeMoves = self.findObservation(self.JsonServerData)
         #print("found observation")
         if badMove:
-            reward = -2.5
+            reward = -2
 
         if self.gameOverFlag and self.winFlag:
-            reward = self.winReward
+            reward = self.winReward + 3*int(self.JsonServerData["turn"])
             self.diag_wl += 1
             self.wins += 1
         
@@ -158,26 +171,26 @@ class Snekgame(gym.Env):
         #print("start reset")
         self.winFlag = False
         self.gameOverFlag = False
-        self.gameLengthAvg = (self.gameLengthAvg/2) + (self.lastGameLength/2)
-        self.averageFoodEaten = (self.averageFoodEaten/2) + (self.diag_food/2)
+        self.gameLengthAvg = (self.totalSteps/ (self.wins + self.loses + 1))
+        self.averageFoodEaten = (self.diag_food/ (self.wins + self.loses + 1))
         print("")
-        print("Wins: <" + str(self.wins) + "> Losses: <" + str(self.loses) + "> Avg Game Len: <" + str(self.gameLengthAvg) + "> Avf Food Ate: <" + str(self.averageFoodEaten) + "> Win Rate: <" + str(self.wins * 100 / (self.wins + self.loses + 1)) + ">")
-        self.lastGameLength = 0  
+        print("Wins: <" + str(self.wins) + "> Losses: <" + str(self.loses) + "> Avg Game Len: <" + str(self.gameLengthAvg) + "> Avf Food Ate: <" + str(self.averageFoodEaten) + "> Win Rate: <" + str(self.wins * 100 / (self.wins + self.loses + 1)) + ">")  
         self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
 
         self.diag_moves = 0
-        self.diag_food = 0
         self.diag_id = ""
         self.diag_kills = 0
         self.diag_snakes = 0
         self.diag_wl = 0
+        self.setCurrentGameParams("", "")
         if self.onlineEnabled:
             createNewGame()
         startWaitTime = time.time()
         while self.newJsonDataFlag == False:
             time.sleep(0.01)
             # LOCUP NOT HERE print("wating for new game")
-            if time.time() - startWaitTime > 1 and self.onlineEnabled:
+            if time.time() - startWaitTime > 5 and self.onlineEnabled:
+                self.setCurrentGameParams("", "")
                 createNewGame()
                 startWaitTime = time.time()
         #print("got json data for reset")
@@ -240,7 +253,7 @@ class Snekgame(gym.Env):
             enemy_length = len(enemy_snake["body"])
 
             # calculate hp value to encode in head position
-            enemy_head_val = enemy_health / max_health * (self.headMaxHP-self.headZeroHP) + self.headZeroHP
+            enemy_head_val = ((enemy_health / max_health) * (self.headMaxHP-self.headZeroHP)) + self.headZeroHP
 
             if (enemy_length < currentLength):
                 enemy_head_val *= -1
@@ -278,8 +291,7 @@ class Snekgame(gym.Env):
             if (head_y - 1) >= 0:
                 board_value =  board_state[head_x, head_y - 1]
                 # if up is not a wall
-                if ((head_x,head_y - 1) == (tail_x, tail_y) and tail != secondLastBodySegment or ((head_x,head_y - 1) in tails) or \
-                    board_value == self.food or board_value == self.empty:
+                if ((head_x,head_y - 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x,head_y - 1) in tails) or board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index] = self.empty
                         safeMoves.append('up')
@@ -289,8 +301,7 @@ class Snekgame(gym.Env):
             if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if ((head_x,head_y + 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x,head_y + 1) in tails) or \
-                    board_value == self.food or board_value == self.empty:
+                if ((head_x,head_y + 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x,head_y + 1) in tails) or board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 1] = self.empty
                         safeMoves.append('down')
@@ -300,8 +311,7 @@ class Snekgame(gym.Env):
             if (head_x - 1) >= 0:
                 board_value =  board_state[head_x - 1, head_y]
                 # if left is not a wall
-                if ((head_x - 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x - 1,head_y) in tails) or \
-                    board_value == self.food or board_value == self.empty:
+                if ((head_x - 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x - 1,head_y) in tails) or board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 2] = self.empty
                         safeMoves.append('left')
@@ -311,8 +321,7 @@ class Snekgame(gym.Env):
             if (head_x + 1) < self.max_board_size:
                 board_value =  board_state[head_x + 1, head_y]
                 # if right is not a wall
-                if ((head_x + 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x + 1,head_y) in tails) or \
-                    board_value == self.food or board_value == self.empty:
+                if ((head_x + 1,head_y) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x + 1,head_y) in tails) or board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 3] = self.empty
                         safeMoves.append('right')
@@ -335,10 +344,12 @@ class Snekgame(gym.Env):
             head_y = 0
 
         #New Centered Observation
-        centeredView = np.full(shape=(viewsize, viewsize), fill_value=self.noGo, dtype=np.float32)
+        centeredView = np.full(shape=(37, 37), fill_value=self.noGo, dtype=np.float32)
+        centeredViewFinal = np.full(shape=(viewsize, viewsize), fill_value=self.noGo, dtype=np.float32)
         observation = np.full(shape=((viewsize * viewsize) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
-        centeredView[centerpoint - head_x : centerpoint - head_x + centerpoint,centerpoint - head_y : centerpoint - head_y + centerpoint] = board_state
-        observation[0: viewsize * viewsize] = np.ndarray.flatten(centeredView)
+        centeredView[centerpoint - head_x -1 : centerpoint - head_x + centerpoint - 1,centerpoint - head_y - 1 : centerpoint - head_y + centerpoint - 1] = board_state
+        centeredViewFinal=centeredView[centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2),centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2)]
+        observation[0: viewsize * viewsize] = np.ndarray.flatten(centeredViewFinal)
         observation[viewsize * viewsize] = currentHP
         observation[viewsize * viewsize + 1: len(observation)] = proximity_flags
 
@@ -534,12 +545,12 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -25
-        self.didNothingReward   = 1
-        self.eatReward          = 25
-        self.killReward         = 50
-        self.winReward          = 25
-        self.diedOnWallReward   = -25
+        self.dieReward          = -10
+        self.didNothingReward   = -0.75
+        self.eatReward          = 75
+        self.killReward         = 25
+        self.winReward          = 15
+        self.diedOnWallReward   = -10
         ## Reward definitions
 
     def enableOnline(self, state):

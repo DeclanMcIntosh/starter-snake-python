@@ -11,9 +11,6 @@ from api import ping_response, start_response, move_response, end_response
 
 #Flags for what kind of network we are training
 sizeType = 19
-currentGame = ""
-currentSnake = ""
-
 envi = Snekgame(max_board_size=sizeType)
 envi.init_just_win_aggresive()
 envi.enableOnline(True)
@@ -44,23 +41,17 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    global currentGame
-    global currentSnake
     #print("start Request recived")
     data = bottle.request.json
     color = "#00FF00"
     if data != None:
-        if currentGame == "" and currentSnake == "" and data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:
+        if envi.getCurrentGame() == "" and envi.getCurrentSnake() == "" and data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:
             envi.setCurrentGameParams(data["game"]["id"], data["you"]["id"])
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
-    global currentGame
-    global currentSnake
-    #print("move Request recived")
-    global envi
     data = bottle.request.json
     move = None
     counter = 0 
@@ -72,7 +63,7 @@ def move():
                 time.sleep(0.0001)
                 counter += 1
             if counter >= 9000:
-                move_response("left")
+                return move_response("left")
         else:
             move = "left"
     else:
@@ -83,8 +74,6 @@ def move():
 
 @bottle.post('/end')
 def end():
-    global currentGame
-    global currentSnake
     data = bottle.request.json
     won = False
     #print(data)
@@ -97,7 +86,6 @@ def end():
             if len(data["board"]["snakes"]) <= 1 and (data["you"]["name"] in snakeNames):
                 won = True
             envi.endEnvi(won)
-            #createNewGame()
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -113,5 +101,5 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=24)
+        Env=envi, max_board_size=sizeType, loadFileNumber=-1)
     ).start()

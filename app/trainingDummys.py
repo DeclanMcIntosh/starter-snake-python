@@ -58,11 +58,11 @@ def startDummy(env, Comm, tryHard=False):
     layer2Size = 8192
     layer3Size = 4096
     layer4Size = 4096
-    layer5Size = 0
+    layer5Size = 4096
 
     # Next, we build a very simple model. 
     model = Sequential()
-    model.add(Flatten(input_shape=(4,) + env.observation_space.shape))
+    model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
     model.add(Dense(layer0Size))
     model.add(Activation('relu'))
     model.add(Dense(layer1Size))
@@ -72,9 +72,9 @@ def startDummy(env, Comm, tryHard=False):
     model.add(Dense(layer3Size))
     model.add(Activation('relu'))
     model.add(Dense(layer4Size))
-    #model.add(Activation('relu'))
-    #model.add(Dense(layer5Size))
-    #model.add(Activation('relu'))
+    model.add(Activation('relu'))
+    model.add(Dense(layer5Size))
+    model.add(Activation('relu'))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
@@ -83,7 +83,7 @@ def startDummy(env, Comm, tryHard=False):
 
     # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
     # even the metrics!
-    memory = SequentialMemory(limit=800000, window_length=4)
+    memory = SequentialMemory(limit=800000, window_length=1)
     policy = BoltzmannQPolicy()
     dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, policy=policy, enable_dueling_network=True)
     dqn.compile(nadam(lr=0.001), metrics=['mae']) 

@@ -5,7 +5,7 @@ import bottle
 import threading
 import time
 
-from LearningEnvironment import *
+from LearningEnvironment2 import *
 from trainingDummys import *
 
 from api import ping_response, start_response, move_response, end_response
