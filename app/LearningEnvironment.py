@@ -211,15 +211,25 @@ class Snekgame(gym.Env):
         return observation
 
     def headonheadfilter(self, boardstate, safeMoves, head_x, head_y):
+        boardsize = len(boardstate)
         headbuttSaveMoves = []
-        w = boardstate[head_x-2, head_y]
-        nw = boardstate[head_x-1, head_y-1]
-        n = boardstate[head_x, head_y-2]
-        ne = boardstate[head_x+1, head_y-1]
-        e = boardstate[head_x+2, head_y]
-        se = boardstate[head_x+1, head_y+1]
-        s = boardstate[head_x, head_y+2]
-        sw = boardstate[head_x-1, head_y+1]
+        w, e, ne, nw, n, s = 0
+        if head_x - 2 >= 0:
+            w = boardstate[head_x-2, head_y]
+        if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
+            nw = boardstate[head_x-1, head_y-1]
+        if head_y - 2 >= 0:
+            n = boardstate[head_x, head_y-2]
+        if (head_x + 1 < boardsize) and (head_y - 1 >= 0):
+            ne = boardstate[head_x+1, head_y-1]
+        if (head_x + 2) < boardsize:
+            e = boardstate[head_x+2, head_y]
+        if (head_x + 1 < boardsize) and (head_y + 1 < boardsize):
+            se = boardstate[head_x+1, head_y+1]
+        if (head_y + 2) > boardsize:
+            s = boardstate[head_x, head_y+2]
+        if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
+            sw = boardstate[head_x-1, head_y+1]
         for move in safeMoves:
             if move == "up":
                 if (n > 0.9 or n < 0.8) and (nw > 0.9 or nw < 0.8) and (ne > 0.9 or ne < 0.8):
