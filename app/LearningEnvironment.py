@@ -256,7 +256,7 @@ class Snekgame(gym.Env):
             if move == "right":
                 if (e != self.headMaxHP) and (ne != self.headMaxHP) and (se != self.headMaxHP):
                      headbuttSaveMoves.append("right")
-
+        print(headbuttSaveMoves)
         return headbuttSaveMoves
 
     def findObservation(self, data):
@@ -381,7 +381,9 @@ class Snekgame(gym.Env):
                         safeMoves.append('right')
 
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
-            
+        
+        
+
         headButtSafeMoves = self.headonheadfilter(board_state, safeMoves, head_x, head_y)
         #Update previous state variables
         self.previousHP = currentHP
@@ -409,13 +411,27 @@ class Snekgame(gym.Env):
         observation[viewsize * viewsize + 1: len(observation)] = proximity_flags
 
         noStuckMoves = self.getSafeDirections(safeMoves, data)
+
+        foodMoves = []
+        if board_state[head_x - 1, head_y] == self.food:
+            if 'left' in safeMoves and 'left' in noStuckMoves and 'left' in headButtSafeMoves:
+                foodMoves.append('left')
+        if board_state[head_x + 1, head_y] == self.food:
+            if 'right' in safeMoves and 'right' in noStuckMoves and 'right' in headButtSafeMoves:
+                foodMoves.append('right')
+        if board_state[head_x, head_y - 1] == self.food:
+            if 'up' in safeMoves and 'up' in noStuckMoves and 'up' in headButtSafeMoves:
+                foodMoves.append('up')
+        if board_state[head_x,head_y + 1] == self.food:
+            if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
+                foodMoves.append('down')
         # Old observation
 
         #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
         #observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
         #observation[(self.max_board_size * self.max_board_size)] = currentHP
         #observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
-        return observation, reward, safeMoves, headButtSafeMoves, noStuckMoves
+        return observation, reward, safeMoves, headButtSafeMoves, noStuckMoves, foodMoves
     
     def endEnvi(self, win):
         self.gameOverFlag = True
@@ -480,8 +496,8 @@ class Snekgame(gym.Env):
         return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
 
     def start_flood_fill(self, matrix, start_x, start_y):
-        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, 20)
-        print ('(' + str(start_x) + ', ' + str(start_y) + ') accumulator: ' + str(accumulator) + '\t smallest_exit: ' + str(smallest_exit))
+        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, 100)
+        #print ('(' + str(start_x) + ', ' + str(start_y) + ') accumulator: ' + str(accumulator) + '\t smallest_exit: ' + str(smallest_exit))
         return accumulator > smallest_exit
 
     # body_part value must be greater than empty
@@ -652,7 +668,8 @@ class Snekgame(gym.Env):
             for snake in data["board"]["snakes"]:
                 count = 1
                 for element in snake["body"]:
-                    boardMap[element['x']][element['y']] = len(snake["body"]) - count
+                    if boardMap[element['x']][element['y']] < len(snake["body"]) - count:
+                        boardMap[element['x']][element['y']] = len(snake["body"]) - count
                     count+=1
             noStuckMoves = []
             headPos = data["you"]["body"][0]
