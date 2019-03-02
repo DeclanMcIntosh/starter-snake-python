@@ -430,6 +430,9 @@ class Snekgame(gym.Env):
                 if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
                     foodMoves.append('down')
         # Old observation
+        print(safeMoves)
+        print(headButtSafeMoves)
+        print(noStuckMoves)
         print(foodMoves)
 
         #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
