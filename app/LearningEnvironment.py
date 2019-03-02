@@ -124,6 +124,12 @@ class Snekgame(gym.Env):
         if self.move not in self.currSafeMoves and len(self.currSafeMoves) > 0:
             self.move = choice(self.currSafeMoves)
             badMove = True
+        
+        noStuckMoves = self.getSafeDirections(self.safeMoves)
+        print(noStuckMoves)
+
+        if self.move not in noStuckMoves and len(noStuckMoves) > 0:
+            self.move = choice(noStuckMoves)
 
         if self.move not in self.headButtSafeMoves and len(self.headButtSafeMoves) > 0:
             self.move = choice(self.headButtSafeMoves)
@@ -631,3 +637,4 @@ def getSafeDirections(self, safeMoves):
     if 'down' in safeMoves:
         if self.startFloodFill(boardMap, head_x, head_y+1):
             noStuckMoves.append('down')
+    return noStuckMoves
