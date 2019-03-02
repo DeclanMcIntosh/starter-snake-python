@@ -408,7 +408,7 @@ class Snekgame(gym.Env):
         observation[viewsize * viewsize] = currentHP
         observation[viewsize * viewsize + 1: len(observation)] = proximity_flags
 
-        noStuckMoves = self.getSafeDirections(self.safeMoves)
+        noStuckMoves = self.getSafeDirections(safeMoves, data)
         # Old observation
 
         #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
@@ -643,30 +643,33 @@ class Snekgame(gym.Env):
     def enableOnline(self, state):
         self.onlineEnabled = state
 
-def getSafeDirections(self, safeMoves):
-    boardMap = [[]]
-    for x in range(0,len(self.JsonServerData["board"]["height"])):
-        for y in range(0,len(self.JsonServerData["board"]["height"])):
-            boardMap[x][y] = self.emptySpaceFloodFill
-    for snake in self.JsonServerData["board"]["snakes"]:
-        count = 1
-        for element in snake["body"]:
-            boardMap[element['x']][element['y']] = len(snake["body"]) - 1
-            count+=1
-    noStuckMoves = []
-    headPos = self.JsonServerData["you"]["body"][0]
-    head_x = headPos['x']
-    head_y = headPos['y']
-    if 'left' in safeMoves:
-        if self.startFloodFill(boardMap, head_x-1, head_y):
-            noStuckMoves.append('left')
-    if 'right' in safeMoves:
-        if self.startFloodFill(boardMap, head_x+1, head_y):
-            noStuckMoves.append('right')
-    if 'up' in safeMoves:
-        if self.startFloodFill(boardMap, head_x, head_y-1):
-            noStuckMoves.append('up')
-    if 'down' in safeMoves:
-        if self.startFloodFill(boardMap, head_x, head_y+1):
-            noStuckMoves.append('down')
-    return noStuckMoves
+    def getSafeDirections(self, safeMoves, data):
+        boardMap = [[]]
+        if data != None:
+            for x in range(0,len(data["board"]["height"])):
+                for y in range(0,len(data["board"]["height"])):
+                    boardMap[x][y] = data
+            for snake in data["board"]["snakes"]:
+                count = 1
+                for element in snake["body"]:
+                    boardMap[element['x']][element['y']] = len(snake["body"]) - 1
+                    count+=1
+            noStuckMoves = []
+            headPos = data["you"]["body"][0]
+            head_x = headPos['x']
+            head_y = headPos['y']
+            if 'left' in safeMoves:
+                if self.start_flood_fill(boardMap, head_x-1, head_y):
+                    noStuckMoves.append('left')
+            if 'right' in safeMoves:
+                if self.start_flood_fill(boardMap, head_x+1, head_y):
+                    noStuckMoves.append('right')
+            if 'up' in safeMoves:
+                if self.start_flood_fill(boardMap, head_x, head_y-1):
+                    noStuckMoves.append('up')
+            if 'down' in safeMoves:
+                if self.start_flood_fill(boardMap, head_x, head_y+1):
+                    noStuckMoves.append('down')
+            return noStuckMoves
+        else: 
+            return safeMoves
