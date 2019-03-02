@@ -239,16 +239,16 @@ class Snekgame(gym.Env):
             sw = boardstate[head_x-1, head_y+1]
         for move in safeMoves:
             if move == "up":
-                if (n > self.headMaxHP or n < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP):
+                if (n != self.headMaxHP) and (nw != self.headMaxHP) and (ne != self.headMaxHP):
                     headbuttSaveMoves.append("up")
             if move == "down":
-                if (s > self.headMaxHP or s < self.headZeroHP) and (sw > self.headMaxHP or sw < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
+                if (s != self.headMaxHP) and (sw != self.headMaxHP) and (se != self.headMaxHP):
                     headbuttSaveMoves.append("down")
             if move == "left":
-                if (w > self.headMaxHP or w < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (sw > self.headMaxHP or sw < self.headZeroHP):
+                if (w != self.headMaxHP) and (nw != self.headMaxHP) and (sw != self.headMaxHP):
                     headbuttSaveMoves.append("left")
             if move == "right":
-                if (e > self.headMaxHP or e < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
+                if (e != self.headMaxHP) and (ne != self.headMaxHP) and (se != self.headMaxHP):
                      headbuttSaveMoves.append("right")
 
         return headbuttSaveMoves
