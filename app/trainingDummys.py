@@ -97,7 +97,7 @@ def startDummy(env, Comm, tryHard=False):
         data = None
         while data == None:
             data = Comm.getNewData()
-        observation, notUsed, currSafeMoves, headButtSafeMoves = env.findObservation(data=data)
+        observation, notUsed, currSafeMoves, headButtSafeMoves, noStuckMoves = env.findObservation(data=data)
         action = dqn.forward(observation)
         if action == 0:
             moveChosen = 'left' 
@@ -109,6 +109,8 @@ def startDummy(env, Comm, tryHard=False):
             moveChosen = 'down' 
         if moveChosen not in currSafeMoves and len(currSafeMoves) > 0:
             moveChosen = choice(currSafeMoves)
+        if moveChosen not in noStuckMoves and len(noStuckMoves) > 0:
+            moveChosen = choice(noStuckMoves)
         if moveChosen not in headButtSafeMoves and len(headButtSafeMoves) > 0:
             moveChosen = choice(headButtSafeMoves)
 
