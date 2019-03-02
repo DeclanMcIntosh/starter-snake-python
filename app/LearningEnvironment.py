@@ -506,8 +506,6 @@ class Snekgame(gym.Env):
             
         elif val > self.emptySpaceFloodFill and val < smallest_exit:
             smallest_exit = val
-        else:
-            todo = 1
         
         return accumulator, smallest_exit
 
