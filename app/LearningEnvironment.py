@@ -301,7 +301,7 @@ class Snekgame(gym.Env):
             enemy_length = len(enemy_snake["body"])
 
             # calculate hp value to encode in head position
-            enemy_head_val = ((enemy_health / max_health) * (self.headMaxHP-self.headZeroHP)) + self.headZeroHP
+            enemy_head_val = self.headMaxHP
 
             if (enemy_length < currentLength):
                 enemy_head_val *= -1
