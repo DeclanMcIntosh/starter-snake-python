@@ -223,7 +223,7 @@ class Snekgame(gym.Env):
         se = 0
         if head_x - 2 >= 0:
             w = boardstate[head_x-2, head_y]
-        if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
+        if (head_x - 1 >= 0) and (head_y - 1 >= 0):
             nw = boardstate[head_x-1, head_y-1]
         if head_y - 2 >= 0:
             n = boardstate[head_x, head_y-2]
