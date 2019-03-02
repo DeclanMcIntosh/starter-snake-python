@@ -480,21 +480,21 @@ class Snekgame(gym.Env):
         return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
 
     def start_flood_fill(self, matrix, start_x, start_y):
-        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, max_board_size*max_board_size)
+        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, 20)
 
         return accumulator > smallest_exit
 
     # body_part value must be greater than empty
     # food is not greater than empty
     def flood_fill(self, matrix, x, y, accumulator, smallest_exit):
-        if (accumulator > smallest_exit):
+        if (accumulator > smallest_exit) or accumulator > self.max_board_size*self.max_board_size:
             return accumulator, smallest_exit
 
-        val = matrix[x,y]
+        val = matrix[x][y]
         
         if (val == self.emptySpaceFloodFill or val == self.emptySpaceFloodFillCounted):
             if (val == self.emptySpaceFloodFill):
-                matrix[x,y] = self.emptySpaceFloodFillCounted
+                matrix[x][y] = self.emptySpaceFloodFillCounted
                 accumulator += 1
 
             if x > 0:
@@ -644,15 +644,15 @@ class Snekgame(gym.Env):
         self.onlineEnabled = state
 
     def getSafeDirections(self, safeMoves, data):
-        boardMap = [[]]
+        boardMap = [[self.emptySpaceFloodFill for col in range(0,data["board"]["height"])] for row in range(0,data["board"]["height"])]
         if data != None:
-            for x in range(0,len(data["board"]["height"])):
-                for y in range(0,len(data["board"]["height"])):
-                    boardMap[x][y] = data
+            #for x in range(0,data["board"]["height"]):
+            #    for y in range(0,data["board"]["width"]):
+            #        boardMap[x][y] = self.emptySpaceFloodFill
             for snake in data["board"]["snakes"]:
                 count = 1
                 for element in snake["body"]:
-                    boardMap[element['x']][element['y']] = len(snake["body"]) - 1
+                    boardMap[element['x']][element['y']] = len(snake["body"]) - count
                     count+=1
             noStuckMoves = []
             headPos = data["you"]["body"][0]
