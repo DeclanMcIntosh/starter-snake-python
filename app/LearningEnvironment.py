@@ -481,7 +481,7 @@ class Snekgame(gym.Env):
 
     def start_flood_fill(self, matrix, start_x, start_y):
         accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, 20)
-
+        print ('(' + str(start_x) + ', ' + str(start_y) + ') accumulator: ' + str(accumulator) + '\t smallest_exit: ' + str(smallest_exit))
         return accumulator > smallest_exit
 
     # body_part value must be greater than empty
@@ -497,14 +497,14 @@ class Snekgame(gym.Env):
                 matrix[x][y] = self.emptySpaceFloodFillCounted
                 accumulator += 1
 
-            if x > 0:
-                accumulator, smallest_exit = self.flood_fill(matrix, x-1, y, accumulator, smallest_exit)
-            if x < len(matrix[y]) - 1:
-                accumulator, smallest_exit = self.flood_fill(matrix, x+1, y, accumulator, smallest_exit)
-            if y > 0:
-                accumulator, smallest_exit = self.flood_fill(matrix, x, y-1, accumulator, smallest_exit)
-            if y < len(matrix) - 1:
-                accumulator, smallest_exit = self.flood_fill(matrix, x, y+1, accumulator, smallest_exit)
+                if x > 0:
+                    accumulator, smallest_exit = self.flood_fill(matrix, x-1, y, accumulator, smallest_exit)
+                if x < len(matrix[y]) - 1:
+                    accumulator, smallest_exit = self.flood_fill(matrix, x+1, y, accumulator, smallest_exit)
+                if y > 0:
+                    accumulator, smallest_exit = self.flood_fill(matrix, x, y-1, accumulator, smallest_exit)
+                if y < len(matrix) - 1:
+                    accumulator, smallest_exit = self.flood_fill(matrix, x, y+1, accumulator, smallest_exit)
             
         elif val > self.emptySpaceFloodFill and val < smallest_exit:
             smallest_exit = val
