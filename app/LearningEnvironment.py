@@ -24,7 +24,7 @@ class Snekgame(gym.Env):
     '''Snek environment for snek game snek
     '''
     def __init__(self, max_board_size=7):
-
+        self.emptySpaceFloodFill = -1
         self.diag_moves = 0
         self.diag_food = 0
         self.diag_kills = 0
@@ -604,3 +604,30 @@ class Snekgame(gym.Env):
 
     def enableOnline(self, state):
         self.onlineEnabled = state
+
+def getSafeDirections(self, safeMoves):
+    boardMap = [[]]
+    for x in range(0,len(self.JsonServerData["board"]["height"])):
+        for y in range(0,len(self.JsonServerData["board"]["height"])):
+            boardMap[x][y] = self.emptySpaceFloodFill
+    for snake in self.JsonServerData["board"]["snakes"]:
+        count = 1
+        for element in snake["body"]:
+            boardMap[element['x']][element['y']] = len(snake["body"]) - 1
+            count+=1
+    noStuckMoves = []
+    headPos = self.JsonServerData["you"]["body"][0]
+    head_x = headPos['x']
+    head_y = headPos['y']
+    if 'left' in safeMoves:
+        if self.startFloodFill(boardMap, head_x-1, head_y):
+            noStuckMoves.append('left')
+    if 'right' in safeMoves:
+        if self.startFloodFill(boardMap, head_x+1, head_y):
+            noStuckMoves.append('right')
+    if 'up' in safeMoves:
+        if self.startFloodFill(boardMap, head_x, head_y-1):
+            noStuckMoves.append('up')
+    if 'down' in safeMoves:
+        if self.startFloodFill(boardMap, head_x, head_y+1):
+            noStuckMoves.append('down')
