@@ -413,18 +413,22 @@ class Snekgame(gym.Env):
         noStuckMoves = self.getSafeDirections(safeMoves, data)
 
         foodMoves = []
-        if board_state[head_x - 1, head_y] == self.food:
-            if 'left' in safeMoves and 'left' in noStuckMoves and 'left' in headButtSafeMoves:
-                foodMoves.append('left')
-        if board_state[head_x + 1, head_y] == self.food:
-            if 'right' in safeMoves and 'right' in noStuckMoves and 'right' in headButtSafeMoves:
-                foodMoves.append('right')
-        if board_state[head_x, head_y - 1] == self.food:
-            if 'up' in safeMoves and 'up' in noStuckMoves and 'up' in headButtSafeMoves:
-                foodMoves.append('up')
-        if board_state[head_x,head_y + 1] == self.food:
-            if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
-                foodMoves.append('down')
+        if head_x > 0:
+            if board_state[head_x - 1, head_y] == self.food:
+                if 'left' in safeMoves and 'left' in noStuckMoves and 'left' in headButtSafeMoves:
+                    foodMoves.append('left')
+        if head_x + 1 < self.max_board_size:
+            if board_state[head_x + 1, head_y] == self.food:
+                if 'right' in safeMoves and 'right' in noStuckMoves and 'right' in headButtSafeMoves:
+                    foodMoves.append('right')
+        if head_y > 0:
+            if board_state[head_x, head_y - 1] == self.food:
+                if 'up' in safeMoves and 'up' in noStuckMoves and 'up' in headButtSafeMoves:
+                    foodMoves.append('up')
+        if head_y + 1 < self.max_board_size:
+            if board_state[head_x,head_y + 1] == self.food:
+                if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
+                    foodMoves.append('down')
         # Old observation
         print(foodMoves)
 
