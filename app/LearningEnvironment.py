@@ -25,6 +25,7 @@ class Snekgame(gym.Env):
     '''
     def __init__(self, max_board_size=7):
         self.emptySpaceFloodFill = -1
+        self.emptySpaceFloodFillCounted = -2
         self.diag_moves = 0
         self.diag_food = 0
         self.diag_kills = 0
@@ -477,6 +478,38 @@ class Snekgame(gym.Env):
             board_state[head_location["x"], head_location["y"]] = head_val
 
         return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
+
+    def start_flood_fill(self, matrix, start_x, start_y):
+        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, max_board_size*max_board_size)
+
+        return accumulator > smallest_exit
+
+    # body_part value must be greater than empty
+    # food is not greater than empty
+    def flood_fill(self, matrix, x, y, accumulator, smallest_exit):
+        if (accumulator > smallest_exit):
+            return accumulator, smallest_exit
+
+        val = matrix[x,y]
+        
+        if (val == self.emptySpaceFloodFill or val == self.emptySpaceFloodFillCounted):
+            if (val == self.emptySpaceFloodFill):
+                matrix[x,y] = self.emptySpaceFloodFillCounted
+                accumulator += 1
+
+            if x > 0:
+                accumulator, smallest_exit = self.flood_fill(matrix, x-1, y, accumulator, smallest_exit)
+            if x < len(matrix[y]) - 1:
+                accumulator, smallest_exit = self.flood_fill(matrix, x+1, y, accumulator, smallest_exit)
+            if y > 0:
+                accumulator, smallest_exit = self.flood_fill(matrix, x, y-1, accumulator, smallest_exit)
+            if y < len(matrix) - 1:
+                accumulator, smallest_exit = self.flood_fill(matrix, x, y+1, accumulator, smallest_exit)
+            
+        elif val > self.emptySpaceFloodFill and val < smallest_exit:
+            smallest_exit = val
+        
+        return accumulator, smallest_exit
 
     def setCurrentGameParams(self, currentGame, currentSnake):
         self.currentGame = currentGame
