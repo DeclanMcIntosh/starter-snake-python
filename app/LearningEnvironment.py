@@ -239,13 +239,13 @@ class Snekgame(gym.Env):
             sw = boardstate[head_x-1, head_y+1]
         for move in safeMoves:
             if move == "up":
-                if (n > -self.headMaxHP or n < -self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP):
+                if (n > self.headMaxHP or n < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP):
                     headbuttSaveMoves.append("up")
             if move == "down":
                 if (s > self.headMaxHP or s < self.headZeroHP) and (sw > self.headMaxHP or sw < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
                     headbuttSaveMoves.append("down")
             if move == "left":
-                if (w > self.headMaxHP or w < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (sw > self.headMaxHP or sw < -self.headZeroHP):
+                if (w > self.headMaxHP or w < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (sw > self.headMaxHP or sw < self.headZeroHP):
                     headbuttSaveMoves.append("left")
             if move == "right":
                 if (e > self.headMaxHP or e < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
@@ -594,12 +594,12 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = -0.15
-        self.eatReward          = 75
-        self.killReward         = 50
+        self.dieReward          = -10
+        self.didNothingReward   = -0.5
+        self.eatReward          = 50
+        self.killReward         = 0
         self.winReward          = 50
-        self.diedOnWallReward   = -50
+        self.diedOnWallReward   = -10
         ## Reward definitions
 
     def enableOnline(self, state):

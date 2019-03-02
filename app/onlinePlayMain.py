@@ -101,5 +101,5 @@ if __name__ == '__main__':
         )
     ).start()
     threading.Thread(target=startLearning, kwargs=dict(
-        Env=envi, max_board_size=sizeType, loadFileNumber=34)
+        Env=envi, max_board_size=sizeType, loadFileNumber=38)
     ).start()

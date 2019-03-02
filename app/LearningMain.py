@@ -125,7 +125,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     while True:
         #saveFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         #dqn.save_weights(saveFile, overwrite=True)
-        dqn.fit(env, nb_steps=10010, visualize=False, verbose=1)
+        dqn.fit(env, nb_steps=100010, visualize=False, verbose=1)
         counter+=1
         saveFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
