@@ -126,7 +126,7 @@ class Snekgame(gym.Env):
             self.move = choice(self.currSafeMoves)
             badMove = True
 
-        print(noStuckMoves)
+        #print(noStuckMoves)
 
         if self.move not in noStuckMoves and len(noStuckMoves) > 0:
             self.move = choice(noStuckMoves)
@@ -256,7 +256,7 @@ class Snekgame(gym.Env):
             if move == "right":
                 if (e != self.headMaxHP) and (ne != self.headMaxHP) and (se != self.headMaxHP):
                      headbuttSaveMoves.append("right")
-        print(headbuttSaveMoves)
+        #print(headbuttSaveMoves)
         return headbuttSaveMoves
 
     def findObservation(self, data):
@@ -426,6 +426,7 @@ class Snekgame(gym.Env):
             if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
                 foodMoves.append('down')
         # Old observation
+        print(foodMoves)
 
         #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
         #observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
