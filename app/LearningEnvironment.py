@@ -80,7 +80,7 @@ class Snekgame(gym.Env):
         self.bodySouth      = 0.2 #0.6
         self.bodyEast       = 0.2 #0.5
         self.bodyWest       = 0.2 #0.4
-        self.headZeroHP     = 0.5  #0.9 # 0.8 <= head <= 0.9
+        self.headZeroHP     = 0.5  #0.9 # 0.8 <= head <= 0.9 headZeroHp < HeadMaxHP
         self.headMaxHP      = 0.5  #0.9 # 0HP --------> max_health
         ## Board Encoding definition
 
@@ -213,7 +213,14 @@ class Snekgame(gym.Env):
     def headonheadfilter(self, boardstate, safeMoves, head_x, head_y):
         boardsize = len(boardstate)
         headbuttSaveMoves = []
-        w, e, ne, nw, n, s = 0
+        w = 0  
+        e = 0 
+        ne = 0
+        nw = 0
+        n = 0 
+        s = 0
+        sw = 0
+        se = 0
         if head_x - 2 >= 0:
             w = boardstate[head_x-2, head_y]
         if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
@@ -226,22 +233,22 @@ class Snekgame(gym.Env):
             e = boardstate[head_x+2, head_y]
         if (head_x + 1 < boardsize) and (head_y + 1 < boardsize):
             se = boardstate[head_x+1, head_y+1]
-        if (head_y + 2) > boardsize:
+        if (head_y + 2) < boardsize:
             s = boardstate[head_x, head_y+2]
         if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
             sw = boardstate[head_x-1, head_y+1]
         for move in safeMoves:
             if move == "up":
-                if (n > 0.9 or n < 0.8) and (nw > 0.9 or nw < 0.8) and (ne > 0.9 or ne < 0.8):
+                if (n > -self.headMaxHP or n < -self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP):
                     headbuttSaveMoves.append("up")
             if move == "down":
-                if (s > 0.9 or s < 0.8) and (sw > 0.9 or sw < 0.8) and (se > 0.9 or se < 0.8):
+                if (s > self.headMaxHP or s < self.headZeroHP) and (sw > self.headMaxHP or sw < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
                     headbuttSaveMoves.append("down")
             if move == "left":
-                if (w > 0.9 or w < 0.8) and (nw > 0.9 or nw < 0.8) and (sw > 0.9 or sw < 0.8):
+                if (w > self.headMaxHP or w < self.headZeroHP) and (nw > self.headMaxHP or nw < self.headZeroHP) and (sw > self.headMaxHP or sw < -self.headZeroHP):
                     headbuttSaveMoves.append("left")
             if move == "right":
-                if (e > 0.9 or e < 0.8) and (ne > 0.9 or ne < 0.8) and (se > 0.9 or se < 0.8):
+                if (e > self.headMaxHP or e < self.headZeroHP) and (ne > self.headMaxHP or ne < self.headZeroHP) and (se > self.headMaxHP or se < self.headZeroHP):
                      headbuttSaveMoves.append("right")
 
         return headbuttSaveMoves
@@ -587,12 +594,12 @@ class Snekgame(gym.Env):
 
     def init_just_win_aggresive(self):
         ## Reward definitions
-        self.dieReward          = -10
-        self.didNothingReward   = -0.75
+        self.dieReward          = -100
+        self.didNothingReward   = -0.15
         self.eatReward          = 75
-        self.killReward         = 25
-        self.winReward          = 15
-        self.diedOnWallReward   = -10
+        self.killReward         = 50
+        self.winReward          = 50
+        self.diedOnWallReward   = -50
         ## Reward definitions
 
     def enableOnline(self, state):
