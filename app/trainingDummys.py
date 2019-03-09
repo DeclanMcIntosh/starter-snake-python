@@ -1,3 +1,10 @@
+"""trainingDummys.py: TODO Description of what this file does."""
+
+__author__ = "Declan McIntosh, Robert Lee, Luke Evans"
+__copyright__ = "Copyright 2019"
+__license__ = "MIT"
+__version__ = "1.0"
+
 import numpy as np
 import gym
 from os import environ

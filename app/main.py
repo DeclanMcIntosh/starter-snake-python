@@ -1,4 +1,9 @@
-# Designed for ofline (local) self-play with a training dummy,
+"""main.py: Used for local ethernet self play."""
+
+__author__ = "Declan McIntosh, Robert Lee, Luke Evans"
+__copyright__ = "Copyright 2019"
+__license__ = "MIT"
+__version__ = "1.0"
 
 import json
 import os
@@ -73,16 +78,15 @@ def move():
 @bottle.post('/end')
 def end():
     data = bottle.request.json
-    wonGame = False
+    wonGameFlag = False
     snakeNames = []
     for snake in data["board"]["snakes"]:
         snakeNames.append(snake["name"])
     # Check if we are in the list of snakes at the termination of the game, if so
     # we have won!
-    if len(data["board"]["snakes"]) == 1 and ("legless lizzard" in snakeNames \
-        or "0" in snakeNames or data["you"]["name"] in snakeNames):
-        wonGame = True
-    envi.endEnvi(wonGame)
+    if len(data["board"]["snakes"]) == 1 and data["you"]["name"] in snakeNames:
+        wonGameFlag = True
+    envi.endEnvi(wonGameFlag)
     return end_response()
 
 # Expose WSGI app (so gunicorn can find it)
@@ -93,7 +97,7 @@ if __name__ == '__main__':
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
-        port=os.getenv('PORT', 'You would like that wouldent you'), # You need to supply a port forwarded port.
+        port=os.getenv('PORT', 'Get your own'), # You need to supply a port forwarded port.
         debug=os.getenv('DEBUG', False),
         quiet=True
         )
