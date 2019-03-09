@@ -32,25 +32,8 @@ from rl.memory import SequentialMemory
 from rl.policy import GreedyQPolicy
 
 max_board_size = 19
-previousNumSnakes = 0
-previousHP = 0
-num_proximity_flags = 8
-num_health_flags = 1
-## Board Encoding defintion 
-noGo           = 1.0
-empty          = 0
-food           = -0.25
-ourHead        = -1
-bodyNorth      = 0.7
-bodySouth      = 0.6
-bodyEast       = 0.5
-bodyWest       = 0.4
-headZeroHP     = 0.8 # 0.8 <= head <= 0.9
-headMaxHP      = 0.9 # 0HP --------> max_health
-## Board Encoding definition
 
 def startDummy(env, Comm, tryHard=False):
-    previousfileLength = 0
     
     nb_actions = env.action_space.n
 
