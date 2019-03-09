@@ -192,14 +192,8 @@ class Snekgame(gym.Env):
         self.gameLengthAvg = (self.totalSteps/ (self.wins + self.loses + 1))
         self.averageFoodEaten = (self.diag_food/ (self.wins + self.loses + 1))
         print("")
-        print("Wins: <" + str(self.wins) + "> Losses: <" + str(self.loses) + "> Avg Game Len: <" + str(self.gameLengthAvg) + "> Avf Food Ate: <" + str(self.averageFoodEaten) + "> Win Rate: <" + str(self.wins * 100 / (self.wins + self.loses + 1)) + ">")  
-        self.diag.write(self.diag_id + "," + str(self.diag_food) + "," + str(self.diag_snakes) + "," + str(self.diag_wl) + "," + str(self.diag_kills) + "," + str(self.diag_moves) + ",")
+        print("Wins: <" + str(self.wins) + "> Losses: <" + str(self.loses) + "> Avg Game Len: <" + str(self.gameLengthAvg) + "> Avf Food Ate: <" + str(self.averageFoodEaten) + "> Win Rate: <" + str(self.wins * 100 / (self.wins + self.loses + 1)) + ">")
 
-        self.diag_moves = 0
-        self.diag_id = ""
-        self.diag_kills = 0
-        self.diag_snakes = 0
-        self.diag_wl = 0
         self.setCurrentGameParams("", "")
         if self.onlineEnabled:
             createNewGame()
@@ -224,8 +218,15 @@ class Snekgame(gym.Env):
         return observation
 
     def headonheadfilter(self, boardstate, safeMoves, head_x, head_y):
+        """ Filter out Bad Headbutt Moves.
+
+        The neural network has issues avoiding instant-death headbutt moves.
+        Takes the boardstate array, an array of known safe moves, and the head location. 
+        Returns a list of moves that are both:
+        (a) known to be safe and (b) can never be a headbutt with a larger snake.
+        """
         boardsize = len(boardstate)
-        headbuttSaveMoves = []
+        headbuttSafeMoves = []
         w = 0  
         e = 0 
         ne = 0
@@ -234,6 +235,7 @@ class Snekgame(gym.Env):
         s = 0
         sw = 0
         se = 0
+        # Ignore spaces outside the board array to avoid range issues
         if head_x - 2 >= 0:
             w = boardstate[head_x-2, head_y]
         if (head_x - 1 >= 0) and (head_y - 1 >= 0):
@@ -253,50 +255,55 @@ class Snekgame(gym.Env):
         for move in safeMoves:
             if move == "up":
                 if (n != self.headMaxHP) and (nw != self.headMaxHP) and (ne != self.headMaxHP):
-                    headbuttSaveMoves.append("up")
+                    headbuttSafeMoves.append("up")
             if move == "down":
                 if (s != self.headMaxHP) and (sw != self.headMaxHP) and (se != self.headMaxHP):
-                    headbuttSaveMoves.append("down")
+                    headbuttSafeMoves.append("down")
             if move == "left":
                 if (w != self.headMaxHP) and (nw != self.headMaxHP) and (sw != self.headMaxHP):
-                    headbuttSaveMoves.append("left")
+                    headbuttSafeMoves.append("left")
             if move == "right":
                 if (e != self.headMaxHP) and (ne != self.headMaxHP) and (se != self.headMaxHP):
-                     headbuttSaveMoves.append("right")
-        #print(headbuttSaveMoves)
-        return headbuttSaveMoves
+                     headbuttSafeMoves.append("right")
+        return headbuttSafeMoves
 
     def findObservation(self, data):
+        """ Parse "observation" data.
+
+        1. When the snake recieves a JSON, process into a boardstate array
+        2. Check for boardstate changes that result in rewards
+        2. Use the boardstate array to produce a list of safe moves (ie. not instant death)
+        3. Process the boardstate into a centred view for the learning algorithm
+        4. Call noStuckMoves to produce a list of moves that will not get the snake trapped
+        5. Return the centred view "observation", total reward, and arrays of safeMoves, headButtSafeMoves, and noStuckMoves
+        """
         board = data["board"]
         rewardSet = False
 
         # A value where more positive is more good more negative is more bad, just a scalar
         reward = 0
 
+        # Parse data for useful parameters
         numSnakesAlive = len(board["snakes"])
-        
-
         currentHP = data["you"]["health"]
-
         currentLength = len(data["you"]["body"])
 
-        # if currentHP has increased, snake must have eaten
+        # If currentHP has increased, snake must have eaten
         if (currentHP >= self.previousHP):
-            reward = self.eatReward
+            reward += self.eatReward
             self.diag_food += 1
             rewardSet = True
         
-        # if number of snakes alive has decreased, a snake must have died (either directly
-        # through this snake's actions, or through the butterfly effect)
+        # If the number of snakes alive has decreased, a snake must have died 
         if (numSnakesAlive < self.previousNumSnakes):
-            reward = self.killReward * (self.previousNumSnakes - numSnakesAlive)
-            #print("killed")
+            reward += self.killReward * (self.previousNumSnakes - numSnakesAlive)
             self.diag_kills += 1
             rewardSet = True
         
-        board_state = np.full((self.max_board_size, self.max_board_size), fill_value=self.empty, dtype=np.float32) # numpy array of size we defined for self.observation_space 
+        # numpy array of size defined in self.observation_space 
+        board_state = np.full((self.max_board_size, self.max_board_size), fill_value=self.empty, dtype=np.float32) 
         
-        # Fill wall locations
+        # Fill wall locations into the board
         for row in range(0, board["height"]):
             for col in range(board["width"], self.max_board_size):
                 board_state[row,col] = self.noGo
@@ -306,34 +313,32 @@ class Snekgame(gym.Env):
                 board_state[row,col] = self.noGo
 
         tails = []
-        # Fill enemy snake body segment locations
-        for enemy_snake in board["snakes"]:
-            # grab each enemy snake (by the head)
 
-            enemy_health = enemy_snake["health"]
+        # Fill enemy snakes into the board
+        for enemy_snake in board["snakes"]:
+            # Grab each enemy snake by the head
             enemy_length = len(enemy_snake["body"])
 
-            # calculate hp value to encode in head position
+            # Calculate hp value to encode in head position
             enemy_head_val = self.headMaxHP
 
+            # Smaller snakes are differentiated with negative head value
             if (enemy_length < currentLength):
                 enemy_head_val *= -1
 
-            # Fill enemy snake body segment locations
+            # Fill enemy snake body segment locations into the board
             unused, enemy_head_x, enemy_head_y, enemy_tail_x, enemy_tail_y = self.fillSnakeBodySegments(board_state, enemy_head_val, enemy_snake)
             if (enemy_snake["body"][enemy_length - 1] != enemy_snake["body"][enemy_length - 2]):
                 # If tail is not overlapping with its body
                 tails.append((enemy_tail_x, enemy_tail_y))
 
-        # Fill our snake body segment locations
-        diedOnWallFlag, head_x, head_y, tail_x, tail_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
+        # Fill our snake into the board
+        diedonWallFlag, head_x, head_y, tail_x, tail_y = self.fillSnakeBodySegments(board_state, self.ourHead, data["you"])
 
-        # Fill food locations
+        # Fill food locations into the board
         for xy_pair in board["food"]:
             if (board_state[xy_pair["x"], xy_pair["y"]] == 0):
                 board_state[xy_pair["x"], xy_pair["y"]] = self.food
-            # else:
-            #     raise ValueError('Food occurred in place where something already exists!')
 
         # Hold simple boolean flags on whether there is danger or food to the snake head's 
         # left, right, up, or down
@@ -341,7 +346,7 @@ class Snekgame(gym.Env):
         #                               food Up, food Down, food Left, food Right]
         # IMPORTANT: our own tail is treated as safe move
         proximity_flags = np.append(np.ones(4), np.zeros(4))
-        # pre-make flags with no-go and no food
+        # Pre-make flags with no-go and no food
         safeMoves = []
         secondLastBodySegment = data["you"]["body"][currentLength - 2]
         tail = data["you"]["body"][currentLength - 1]
@@ -362,7 +367,7 @@ class Snekgame(gym.Env):
             if (head_y + 1) < self.max_board_size:
                 board_value =  board_state[head_x, head_y + 1]
                 # if down is not a wall
-                if ((head_x,head_y + 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x,head_y + 1) in tails) or board_value == self.food or board_value == self.empty:
+                if ((head_x, head_y + 1) == (tail_x, tail_y) and tail != secondLastBodySegment) or ((head_x, head_y + 1) in tails) or board_value == self.food or board_value == self.empty:
                     # if this is our own tail, food, empty, or other snake tails
                         proximity_flags[noGo_index + 1] = self.empty
                         safeMoves.append('down')
@@ -390,63 +395,40 @@ class Snekgame(gym.Env):
                         proximity_flags[food_index + 3] = (board_value == self.food) + 0
         
         
-
+        # Generate a list of non-lethal-headbutt moves
         headButtSafeMoves = self.headonheadfilter(board_state, safeMoves, head_x, head_y)
+
         #Update previous state variables
         self.previousHP = currentHP
         self.previousNumSnakes = numSnakesAlive
 
-        #If nothing has been done, do nothing reward
+        # If nothing has been done, do nothing reward
         if rewardSet == False:
             reward = self.didNothingReward
 
-        #Flatten the output and place in a current hp value
-        #Place centered
+        # Flatten the output and place in a current hp value
+        # Place centered
         if head_x < 0:
             head_x = 0
         if head_y < 0:
             head_y = 0
 
-        #New Centered Observation
+        # New Centered Observation for learning
         centeredView = np.full(shape=(37, 37), fill_value=self.noGo, dtype=np.float32)
         centeredViewFinal = np.full(shape=(viewsize, viewsize), fill_value=self.noGo, dtype=np.float32)
         observation = np.full(shape=((viewsize * viewsize) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
-        centeredView[centerpoint - head_x -1 : centerpoint - head_x + centerpoint - 1,centerpoint - head_y - 1 : centerpoint - head_y + centerpoint - 1] = board_state
+        # Centre boardstate on current head location
+        centeredView[centerpoint - head_x - 1 : centerpoint - head_x + centerpoint - 1,centerpoint - head_y - 1 : centerpoint - head_y + centerpoint - 1] = board_state
+        # Truncate centred view to limit input space for the learning algorithm
         centeredViewFinal=centeredView[centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2),centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2)]
         observation[0: viewsize * viewsize] = np.ndarray.flatten(centeredViewFinal)
         observation[viewsize * viewsize] = currentHP
         observation[viewsize * viewsize + 1: len(observation)] = proximity_flags
 
+        # Create a list of moves that won't result in getting trapped
         noStuckMoves = self.getSafeDirections(safeMoves, data)
 
-        foodMoves = []
-        if head_x > 0:
-            if board_state[head_x - 1, head_y] == self.food:
-                if 'left' in safeMoves and 'left' in noStuckMoves and 'left' in headButtSafeMoves:
-                    foodMoves.append('left')
-        if head_x + 1 < self.max_board_size:
-            if board_state[head_x + 1, head_y] == self.food:
-                if 'right' in safeMoves and 'right' in noStuckMoves and 'right' in headButtSafeMoves:
-                    foodMoves.append('right')
-        if head_y > 0:
-            if board_state[head_x, head_y - 1] == self.food:
-                if 'up' in safeMoves and 'up' in noStuckMoves and 'up' in headButtSafeMoves:
-                    foodMoves.append('up')
-        if head_y + 1 < self.max_board_size:
-            if board_state[head_x,head_y + 1] == self.food:
-                if 'down' in safeMoves and 'down' in noStuckMoves and 'down' in headButtSafeMoves:
-                    foodMoves.append('down')
-        # Old observation
-        print(safeMoves)
-        print(headButtSafeMoves)
-        print(noStuckMoves)
-        print(foodMoves)
-
-        #observation = np.full(shape=((self.max_board_size * self.max_board_size) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
-        #observation[0:(self.max_board_size * self.max_board_size)] = np.ndarray.flatten(board_state)
-        #observation[(self.max_board_size * self.max_board_size)] = currentHP
-        #observation[self.max_board_size * self.max_board_size + 1: len(observation)] = proximity_flags
-        return observation, reward, safeMoves, headButtSafeMoves, noStuckMoves, foodMoves
+        return observation, reward, safeMoves, headButtSafeMoves, noStuckMoves
     
     def endEnvi(self, win):
         self.gameOverFlag = True
@@ -463,26 +445,32 @@ class Snekgame(gym.Env):
         return None
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
+        """ Fill a given snake into a boardstate
+
+        Given a boardstate and a snake, place the snake into the board segment by segment
+        """
         wallDeathFlag = False
         body_x = 0
         body_y = 0
+        
+        # If snake has no length, just abort
         if (len(whole_snake["body"]) == 0):
             return None
 
-        # get location of head
+        # Get location of and fill snake head
         head_location = whole_snake["body"][0]
         body_prev_x = head_location["x"]
         body_prev_y = head_location["y"]
         if head_location["x"] < 0 or head_location["x"] >= self.max_board_size or head_location["y"] < 0 or head_location["y"] >= self.max_board_size:
                 wallDeathFlag = True
 
-        # encode rest of body into board, where each body segment points to 
+        # Encode rest of body into board, where each body segment points to 
         # the direction of the previous body segment
         for i in range(1, len(whole_snake["body"])):
             body_x = whole_snake["body"][i]["x"]
             body_y = whole_snake["body"][i]["y"]
 
-            # keep in mind, x is used to index the row number (increasing x means moving south), 
+            # Keep in mind, x is used to index the row number (increasing x means moving south), 
             # and y is used to index column number (increasing y means moving east)
             #  y-> 0 1 ... n
             # x:  _____________
@@ -504,7 +492,7 @@ class Snekgame(gym.Env):
             body_prev_x = body_x
             body_prev_y = body_y
 
-        # encode head position
+        # Encode head position
         if head_location["x"] > 0 and head_location["x"] < self.max_board_size and head_location["y"] > 0 and head_location["y"] < self.max_board_size:
             board_state[head_location["x"], head_location["y"]] = head_val
 
@@ -561,104 +549,6 @@ class Snekgame(gym.Env):
         self.killReward         = 10
         self.winReward          = 250
         self.diedOnWallReward   = -250
-        ## Reward definitions
-    
-    # that snek who's just a bit better :/
-    def init_wholesome_pp(self):
-        ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = 5
-        self.eatReward          = 5
-        self.killReward         = 10
-        self.winReward          = 250
-        self.diedOnWallReward   = -100
-        ## Reward definitions
-
-    # might want to lay off the food. is the snek that makes people in elevators glance at snek capacity limit
-    def init_absolute_unit(self):
-        ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = -0.1
-        self.eatReward          = 5
-        self.killReward         = 1
-        self.winReward          = 250
-        self.diedOnWallReward   = -250
-        ## Reward definitions
-
-    # name's snek, james snek. has licence to kill. 2/10; avoid encounters if possible
-    def init_danger_noodle(self):
-        ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = -0.1
-        self.eatReward          = 0
-        self.killReward         = 30
-        self.winReward          = 250
-        self.diedOnWallReward   = -250
-        ## Reward definitions
-
-    # wholesome but just better fed
-    def init_well_fed(self):
-        ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = -0.1
-        self.eatReward          = 1
-        self.killReward         = 10
-        self.winReward          = 250
-        self.diedOnWallReward   = -250
-        ## Reward definitions
-    
-    # addicted to caffeine. needs to calm down asap
-    def init_hyper_snek(self):
-        ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = -0.5
-        self.eatReward          = 0
-        self.killReward         = 0
-        self.winReward          = 250
-        self.diedOnWallReward   = -250
-        ## Reward definitions
-    
-    # cries when someone eats anything that used to be living. including plants.
-    def init_pacifist(self):
-        ## Reward definitions
-        self.dieReward          = -250
-        self.didNothingReward   = 1
-        self.eatReward          = 1
-        self.killReward         = -1
-        self.winReward          = 250
-        self.diedOnWallReward   = -250
-        ## Reward definitions
-    
-    # legend says this snek is still running away. no one knows from what.
-    def init_scaredy_snek(self):
-        ## Reward definitions
-        self.dieReward          = -500
-        self.didNothingReward   = 0
-        self.eatReward          = 0
-        self.killReward         = 0
-        self.winReward          = 250
-        self.diedOnWallReward   = -500
-        ## Reward definitions
-    
-    # everyone who has run across this snek is dead. RUN.
-    def init_six_pool(self):
-        ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = 0
-        self.eatReward          = 0
-        self.killReward         = 150
-        self.winReward          = 100
-        self.diedOnWallReward   = -100
-        ## Reward definitions
-
-    def train_not_hit_walls(self):
-        ## Reward definitions
-        self.dieReward          = -100
-        self.didNothingReward   = 5
-        self.eatReward          = 5
-        self.killReward         = 5
-        self.winReward          = 250
-        self.diedOnWallReward   = -100
         ## Reward definitions
 
     def init_just_win_aggresive(self):
