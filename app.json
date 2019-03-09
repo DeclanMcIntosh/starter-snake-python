@@ -1,7 +1,7 @@
 {
-  "name": "BattleSnake Python",
-  "description": "A simple BattleSnake AI written in Python.",
-  "repository": "https://github.com/sendwithus/battlesnake-python",
+  "name": "BattleSnake Python, with keras-rl",
+  "description": "A keras-rl python battlesnake respository, with some low level move filtering.",
+  "repository": "https://github.com/DeclanMcIntosh/battlesnake-keras-rl",
   "website": "http://battlesnake.io",
-  "keywords": ["battlesnake","sendwithus"]
+  "keywords": ["battlesnake","sendwithus", "Declan McIntosh", "Robert Lee", "Luke Evans", "tensorflow", "python"]
 }
