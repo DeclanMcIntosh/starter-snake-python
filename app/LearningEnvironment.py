@@ -501,33 +501,77 @@ class Snekgame(gym.Env):
         return wallDeathFlag, head_location["x"], head_location["y"], whole_snake["body"][len(whole_snake["body"]) - 1]["x"], whole_snake["body"][len(whole_snake["body"]) - 1]["y"]
 
     def start_flood_fill(self, matrix, start_x, start_y):
-        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, 0, 100)
-        #print ('(' + str(start_x) + ', ' + str(start_y) + ') accumulator: ' + str(accumulator) + '\t smallest_exit: ' + str(smallest_exit))
+        """ Wrapper function to call recursive flood-fill algorithm
+        Very rough heuristic to estimate if there is an exit for a particular move direction.
+        1. Finds the number of empty or food spots in a particular direction that is enclosed by snake bodies.
+        2. Determines if there is a body element on the edge of this area that will free up in a smaller number of
+           moves than the total number of open/food spots found in part 1
+        
+        LIMITATIONS: does not account for dead ends, impossible to reach areas, and snake wrapping. This 
+                     will not filter out dead ends where the opening spot will be impossible to reach as 
+                     our own snake body will block it.
+        @param  matrix      contains the board to which flood-fill is applied. This matrix is encoded as follows:
+                            - Any food or empty spot is encoded as self.emptySpaceFloodFill
+                            - Any snake is encoded with the number of spaces (ignoring eating) left until
+                              that particular board location frees up. (i.e., tail is 0, as the space will free up
+                              during this move. Head is encoded as length-of-snake - 1, as it will take that many steps 
+                              until the space frees up)
+        @param  start_x     the x-coordinate where flood-fill is used
+        @param  start_y     the y-coordinate where flood-fill is used
+        @return             Returns true if there is a potential opening, false otherwise
+        """
+        accumulator, smallest_exit = self.flood_fill(matrix, start_x, start_y, accumulator=0, smallest_exit=100)
         return accumulator > smallest_exit
 
-    # body_part value must be greater than empty
-    # food is not greater than empty
     def flood_fill(self, matrix, x, y, accumulator, smallest_exit):
+        """ 
+        Recursive function that implements flood-fill to determine whether there is a possible exit 
+        for a particular move direction. See `start_flood_fill` for more detailed implementation description
+
+        @param  matrix    contains the board to which flood-fill is applied. This matrix is encoded as follows:
+                            - Any food or empty spot is encoded as self.emptySpaceFloodFill
+                            - Any snake is encoded with the number of spaces (ignoring eating) left until
+                              that particular board location frees up. (i.e., tail is 0, as the space will free up
+                              during this move. Head is encoded as length-of-snake - 1, as it will take that many steps 
+                              until the space frees up)
+        @param  x               the x-coordinate where flood-fill is used
+        @param  y               the y-coordinate where flood-fill is used
+        @param  accumulator     current number of empty/food spaces counted
+        @param  smallest_exit   smallest exit on perimeter of flood-fill space
+        @return accumulator     new accumulator value
+        @return smallest_exit   new smallest exit value
+        """
         if (accumulator > smallest_exit) or accumulator > self.max_board_size*self.max_board_size:
+            # stop recursion when number of empty/food spaces surpasses the smallest exit on perimeter
             return accumulator, smallest_exit
 
+        # get value of board at (x,y)
         val = matrix[x][y]
         
-        if (val == self.emptySpaceFloodFill or val == self.emptySpaceFloodFillCounted):
-            if (val == self.emptySpaceFloodFill):
-                matrix[x][y] = self.emptySpaceFloodFillCounted
-                accumulator += 1
+        if (val == self.emptySpaceFloodFill):
+            # if this space has not been encountered before
 
-                if x > 0:
-                    accumulator, smallest_exit = self.flood_fill(matrix, x-1, y, accumulator, smallest_exit)
-                if x < len(matrix[y]) - 1:
-                    accumulator, smallest_exit = self.flood_fill(matrix, x+1, y, accumulator, smallest_exit)
-                if y > 0:
-                    accumulator, smallest_exit = self.flood_fill(matrix, x, y-1, accumulator, smallest_exit)
-                if y < len(matrix) - 1:
-                    accumulator, smallest_exit = self.flood_fill(matrix, x, y+1, accumulator, smallest_exit)
+            # flag it as encountered
+            matrix[x][y] = self.emptySpaceFloodFillCounted 
+            # add to accumulator
+            accumulator += 1
+
+            if x > 0: 
+                # check x-1 direction
+                accumulator, smallest_exit = self.flood_fill(matrix, x-1, y, accumulator, smallest_exit)
+            if x < len(matrix[y]) - 1:
+                # check x+1 direction
+                accumulator, smallest_exit = self.flood_fill(matrix, x+1, y, accumulator, smallest_exit)
+            if y > 0:
+                # check y-1 direction
+                accumulator, smallest_exit = self.flood_fill(matrix, x, y-1, accumulator, smallest_exit)
+            if y < len(matrix) - 1:
+                # check y+1 direction
+                accumulator, smallest_exit = self.flood_fill(matrix, x, y+1, accumulator, smallest_exit)
             
         elif val > self.emptySpaceFloodFill and val < smallest_exit:
+            # if this is a snake body part and is smaller than the smallest perimeter value 
+            # encountered so far, update smallest perimeter value 
             smallest_exit = val
         
         return accumulator, smallest_exit
