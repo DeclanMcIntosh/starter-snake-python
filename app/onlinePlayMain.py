@@ -1,4 +1,4 @@
-"""onlinePlayMain.py: TODO Description of what this file does."""
+"""onlinePlayMain.py: Runs training games online"""
 
 __author__ = "Declan McIntosh, Robert Lee, Luke Evans"
 __copyright__ = "Copyright 2019"
@@ -16,7 +16,7 @@ from LearningMain import *
 
 from api import ping_response, start_response, move_response, end_response
 
-#Flags for what kind of network we are training
+#Create Environment
 sizeType = 19
 envi = Snekgame(max_board_size=sizeType)
 envi.init_just_win_aggresive()
@@ -28,10 +28,12 @@ def index():
 
     Battlesnake documentation can be found at
 
-       <a href="https://docs.battlesnake.io">https://docs.battlesnake.io</a>. This snake is ##SNAKE_PERSONALITY_INSERT_HERE##, its created with reinforcement learning algorithms powered by tensorflow, keras and keras-rl. :3
+       <a href="https://docs.battlesnake.io">https://docs.battlesnake.io</a>. 
+       This snake is Kevin. 
+       It's created with reinforcement learning algorithms powered by tensorflow, keras and keras-rl.
+       :3
 
     '''
-
 
 @bottle.route('/static/<path:path>')
 def static(path):
@@ -48,11 +50,13 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    #print("start Request recived")
     data = bottle.request.json
     color = "#00FF00"
+    # Training requires one games played sequentially one at a time this
+    # filters unwanted games.
     if data != None:
-        if envi.getCurrentGame() == "" and envi.getCurrentSnake() == "" and data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:
+        if envi.getCurrentGame() == "" and envi.getCurrentSnake() == "" and \
+        data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:
             envi.setCurrentGameParams(data["game"]["id"], data["you"]["id"])
     return start_response(color)
 
@@ -63,7 +67,9 @@ def move():
     move = None
     counter = 0 
     if data != None:
-        if  data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
+        # Make sure we are only playing our current game
+        if  data["game"]["id"] == envi.getCurrentGame() \
+        and data["you"]["id"] == envi.getCurrentSnake():
             envi.sendNewData(data)
             while move == None and counter < 9000:
                 move = envi.getMove()
@@ -75,7 +81,6 @@ def move():
             move = "left"
     else:
         move = "left"
-    #print("move Request responded")
     return move_response(move)
 
 
@@ -83,9 +88,9 @@ def move():
 def end():
     data = bottle.request.json
     won = False
-    #print(data)
     if  data != None:
-        if data["game"]["id"] == envi.getCurrentGame() and data["you"]["id"] == envi.getCurrentSnake():
+        if data["game"]["id"] == envi.getCurrentGame() \
+        and data["you"]["id"] == envi.getCurrentSnake():
             envi.setCurrentGameParams("", "")
             snakeNames = []
             for snake in data["board"]["snakes"]:
@@ -99,6 +104,7 @@ def end():
 application = bottle.default_app()
 
 if __name__ == '__main__':
+    # Start main server thread
     threading.Thread(target=bottle.run, kwargs=dict(
         app=application,
         host=os.getenv('IP', '0.0.0.0'),
@@ -107,6 +113,7 @@ if __name__ == '__main__':
         quiet=True
         )
     ).start()
+    # Start main learning thread
     threading.Thread(target=startLearning, kwargs=dict(
         Env=envi, max_board_size=sizeType, loadFileNumber=38)
     ).start()
