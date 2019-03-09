@@ -9,33 +9,31 @@ import numpy as np
 import gym
 from os import environ
 
-import numpy as np
-
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
-from keras.optimizers import Adam, nadam
 from keras.layers.advanced_activations import LeakyReLU
+from keras.optimizers import Adam, nadam
+from rl.agents.cem  import CEMAgent
 from rl.agents.dqn import DQNAgent
 from rl.agents.sarsa import SARSAAgent
-from rl.agents.cem  import CEMAgent
 
+from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 from rl.policy import EpsGreedyQPolicy
 from rl.policy import GreedyQPolicy
-from rl.memory import SequentialMemory
 
 def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, memoryAllocation=800000):
     # Get the environment and extract the number of actions.
     if loadFileNumber != None:
-        load_file_number = loadFileNumber #-1 loads no starting file
+        load_file_number = loadFileNumber # -1 loads no starting file
     else:
         load_file_number = -1
+
     # Set used GPU 
     if gpuToUse != None:
         environ["CUDA_VISIBLE_DEVICES"]=gpuToUse
     else:
         environ["CUDA_VISIBLE_DEVICES"]="0"
-
 
     env = Env
     nb_actions = env.action_space.n
@@ -84,6 +82,7 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
         layer3Size = 0
         layer4Size = 0
         layer5Size = 1
+
     # Next, we build a very simple model. 
     model = Sequential()
     model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
@@ -122,11 +121,11 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
     #dqn.save_weights(loadFile, overwrite=True)
     #Load Previous training 
 
-    #Start traing
+    # Start training
     # Ctrl + C.
     # We train and store 
 
-    #SELF NOTE CHANGED TO ONLY POSITIVE REWARDS BECAUSE SNAKE WAS TOO AFFRAID TO DIE AS IT LOST SO OFTEN
+    #SELF NOTE CHANGED TO ONLY POSITIVE REWARDS BECAUSE SNAKE WAS TOO AFRAID TO DIE AS IT LOST SO OFTEN
 
     counter = 0
     while True:
@@ -136,5 +135,3 @@ def startLearning(Env, max_board_size=7, loadFileNumber=None, gpuToUse=None, mem
         counter+=1
         saveFile = "Larger_Memeory_BOARDSIZE_" + str(max_board_size) + "_DQN_LAYERS_" + str(layer0Size) + "_" + str(layer1Size) + "_" + str(layer2Size) + "_" + str(layer3Size) + "_" + str(layer4Size) + "_" + str(layer5Size) + "_SAVENUMBER_" + str(load_file_number + counter) + ".h5f"
         dqn.save_weights(saveFile, overwrite=True)
-
-
