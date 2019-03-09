@@ -26,18 +26,14 @@ viewsize = 25 # OLD VERSION FOR DEEP NETWORK -> 29 # must be odd
 centerpoint = 19 # must be odd
 
 class Snekgame(gym.Env):
-    '''Snek environment for snek game snek
+    ''' Snake Game Class
+
+    Configure definitions and parameters for learning environment
     '''
     def __init__(self, max_board_size=7):
         self.emptySpaceFloodFill = -1
         self.emptySpaceFloodFillCounted = -2
-        self.diag_moves = 0
-        self.diag_food = 0
-        self.diag_kills = 0
-        self.diag_snakes = 0
-        self.diag_wl = 0
-        self.csv_string = ""
-        self.diag_id = ""
+
         self.currentGame = ""
         self.currentSnake = ""
 
@@ -49,10 +45,9 @@ class Snekgame(gym.Env):
         self.lastGameLength = 0
         self.wonQuestionMark = False
         self.onlineEnabled = False
+        self.diag_food = 0
 
         self.max_board_size=max_board_size
-        #Diagnostic File
-        self.diag = open("diagnostic.csv", "a+")
 
         #Snake Move Decision
         self.move = 'left'
@@ -67,29 +62,16 @@ class Snekgame(gym.Env):
         self.init_wholesome_boi()
 
         ## Board Encoding definition 
-        #self.noGo           = 0
-        #self.empty          = 1.0
-        #self.food           = -0.4
-        #self.ourHead        = -1
-        #self.bodyNorth      = 0.7
-        #self.bodySouth      = 0.6
-        #self.bodyEast       = 0.5
-        #self.bodyWest       = 0.4
-        #self.headZeroHP     = 0.8 # 0.8 <= head <= 0.9
-        #self.headMaxHP      = 0.9 # 0HP --------> max_health
-        ## Board Encoding definition
-
-        ## Board Encoding definition 
         self.noGo           = -1.0
         self.empty          = 1.0
         self.food           = -0.2
         self.ourHead        = 0
-        self.bodyNorth      = 0.2 #0.7
-        self.bodySouth      = 0.2 #0.6
-        self.bodyEast       = 0.2 #0.5
-        self.bodyWest       = 0.2 #0.4
-        self.headZeroHP     = 0.5  #0.9 # 0.8 <= head <= 0.9 headZeroHp < HeadMaxHP
-        self.headMaxHP      = 0.5  #0.9 # 0HP --------> max_health
+        self.bodyNorth      = 0.2
+        self.bodySouth      = 0.2
+        self.bodyEast       = 0.2
+        self.bodyWest       = 0.2
+        self.headZeroHP     = 0.5
+        self.headMaxHP      = 0.5
         ## Board Encoding definition
 
         self.boundsUpper = 1
@@ -100,7 +82,8 @@ class Snekgame(gym.Env):
         self.newJsonDataFlag = False
 
         #Previous state variables
-        self.previousHP = max_health + 1      #used to determine whether snake has eaten
+        # previousHP used to determine whether snake has eaten
+        self.previousHP = max_health + 1    
         self.previousNumSnakes = -1     #used to determine whether other snake has died
 
         #Required OpenAi gym things
@@ -110,15 +93,14 @@ class Snekgame(gym.Env):
             num_proximity_flags,), dtype=np.float32, low=self.boundsLower, high=self.boundsUpper)
 
     def seed(self, seed=None):
-        #we will never use this this never gets used by the keras-rl but needs to exist.
+        # This never gets used by the keras-rl but needs to exist
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
     def step(self, action):
-        #print("step")
+
         self.totalSteps += 1
 
-        self.diag_moves += 1
         if action == 0:
             self.move = 'left' 
         if action == 1:
@@ -133,16 +115,10 @@ class Snekgame(gym.Env):
             self.move = choice(self.currSafeMoves)
             badMove = True
 
-        #print(noStuckMoves)
-
-        if self.move not in noStuckMoves and len(noStuckMoves) > 0:
-            self.move = choice(noStuckMoves)
-
         if self.move not in self.headButtSafeMoves and len(self.headButtSafeMoves) > 0:
             self.move = choice(self.headButtSafeMoves)
             badMove = True
-        #print("Filtered Move " + self.move)
-        #print(self.currSafeMoves)
+
         #Let other thread know a new move is avalible 
         self.newMoveFlag = True
 
@@ -150,24 +126,22 @@ class Snekgame(gym.Env):
         startWaitTime = time.time()
         while self.newJsonDataFlag == False and self.gameOverFlag == False:
             time.sleep(0.01)
-            # LOCKUP NOT HERE print("waiting for new data")
             if time.time()-startWaitTime > 5 and self.onlineEnabled and self.JsonServerData != None:
                 self.gameOverFlag = True 
                 self.winFlag = False
                 self.currentGame = ""
                 self.currentSnake = ""
                 break
-        #print("got JSON for step")
+
         #Reset Flag
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves, self.headButtSafeMoves = self.findObservation(self.JsonServerData)
-        #print("found observation")
+
         if badMove:
             reward = -2
 
         if self.gameOverFlag and self.winFlag:
             reward = self.winReward + 3*int(self.JsonServerData["turn"])
-            self.diag_wl += 1
             self.wins += 1
         
         if self.gameOverFlag and self.winFlag == False:
@@ -178,15 +152,12 @@ class Snekgame(gym.Env):
             # a reward for the action just taken, an16
             # a bool of if the episode is over
             # optionally we can include a dict of other diagnostics we may care about...
-        #print("end step")
-        #print(" ")
-        #
-        #print(reward)
-        return observation, reward, self.gameOverFlag, {"needs" : "to be done"}
+
+        #TODO in return
+        return observation, reward, self.gameOverFlag, {"needs" : "to be done"} 
 
     def reset(self):
-        #print(" ")
-        #print("start reset")
+
         self.winFlag = False
         self.gameOverFlag = False
         self.gameLengthAvg = (self.totalSteps/ (self.wins + self.loses + 1))
@@ -205,20 +176,14 @@ class Snekgame(gym.Env):
                 self.setCurrentGameParams("", "")
                 createNewGame()
                 startWaitTime = time.time()
-        #print("got json data for reset")
+
         self.newJsonDataFlag = False
         observation, reward, self.currSafeMoves, unused = self.findObservation(self.JsonServerData)
-        #if self.wins > 0 or self.loses > 0:
-        #    print("    Wins: " + str(self.wins) + "   Losses: " + str(self.loses) + "  Win %: " + str(100 * self.wins/(self.wins+ self.loses)) + "%")
-        #print("end reset")
-
-        self.diag_id = self.JsonServerData["game"]["id"]
-        self.diag_snakes = len(self.JsonServerData["board"]["snakes"])
-        #print("reset recived data")
+ 
         return observation
 
-    def headonheadfilter(self, boardState, safeMoves, head_x, head_y):
-        """ Filter out bad Headbutt Moves.
+    def badHeadButtFilter(self, boardState, safeMoves, head_x, head_y):
+        """ Filter out bad headbutt moves.
 
         The neural network has issues avoiding instant-death headbutt moves.
         @param the boardState array, an array of known safe moves, and the head location. 
@@ -271,13 +236,15 @@ class Snekgame(gym.Env):
 
     def findObservation(self, data):
         """ Parse "observation" data.
+        @param: a dict of board state data from the JSON
+        @return: the centred view "observation", total reward, and arrays of safeMoves, headButtSafeMoves, and noStuckMoves
 
-        1. When the snake recieves a JSON, process into a boardState array
-        2. Check for boardState changes that result in rewards
-        2. Use the boardState array to produce a list of safe moves (ie. not instant death)
-        3. Process the boardState into a centred view for the learning algorithm
-        4. Call noStuckMoves to produce a list of moves that will not get the snake trapped
-        5. Return the centred view "observation", total reward, and arrays of safeMoves, headButtSafeMoves, and noStuckMoves
+        Performs the following:
+            1. When the snake recieves a JSON, process into a boardState array
+            2. Check for boardState changes that result in rewards
+            3. Use the boardState array to produce a list of safe moves (ie. not instant death)
+            4. Process the boardState into a centred view for the learning algorithm
+            5. Call noStuckMoves to produce a list of moves that will not get the snake trapped
         """
         board = data["board"]
         rewardSet = False
@@ -299,7 +266,6 @@ class Snekgame(gym.Env):
         # If the number of snakes alive has decreased, a snake must have died 
         if (numSnakesAlive < self.previousNumSnakes):
             reward += self.killReward * (self.previousNumSnakes - numSnakesAlive)
-            self.diag_kills += 1
             rewardSet = True
         
         # numpy array of size defined in self.observation_space 
@@ -398,7 +364,7 @@ class Snekgame(gym.Env):
         
         
         # Generate a list of non-lethal-headbutt moves
-        headButtSafeMoves = self.headonheadfilter(board_state, safeMoves, head_x, head_y)
+        headButtSafeMoves = self.badHeadButtFilter(board_state, safeMoves, head_x, head_y)
 
         #Update previous state variables
         self.previousHP = currentHP
@@ -437,10 +403,20 @@ class Snekgame(gym.Env):
         self.winFlag = win
 
     def sendNewData(self, data):
+        """ Pass JSON data from server
+
+            @param: JSON data from the server, as a dict
+            
+            Update class data dict and new data flag
+        """
         self.JsonServerData = data
         self.newJsonDataFlag = True
 
     def getMove(self):
+        """ Initiates a new move
+
+        Reset flag, call self.move
+        """
         if self.newMoveFlag:
             self.newMoveFlag = False
             return self.move
@@ -449,7 +425,8 @@ class Snekgame(gym.Env):
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
         """ Fill a given snake into a boardState
 
-        Given a boardState and a snake, place the snake into the board segment by segment
+        @param: array of the board state, head value, dict of snake segments
+        @return: flag if wall death occurred, xy values of snake head, arrays of x and y body segments
         """
         wallDeathFlag = False
         body_x = 0
@@ -586,7 +563,7 @@ class Snekgame(gym.Env):
     def getCurrentSnake(self):
         return self.currentSnake
 
-    # all around good boi. everyone's favourite
+    # Basic reward structure
     def init_wholesome_boi(self):
         ## Reward definitions
         self.dieReward          = -250
@@ -597,6 +574,7 @@ class Snekgame(gym.Env):
         self.diedOnWallReward   = -250
         ## Reward definitions
 
+    # Adjusted optimized reward structure
     def init_just_win_aggresive(self):
         ## Reward definitions
         self.dieReward          = -10
@@ -613,9 +591,6 @@ class Snekgame(gym.Env):
     def getSafeDirections(self, safeMoves, data):
         boardMap = [[self.emptySpaceFloodFill for col in range(0,data["board"]["height"])] for row in range(0,data["board"]["height"])]
         if data != None:
-            #for x in range(0,data["board"]["height"]):
-            #    for y in range(0,data["board"]["width"]):
-            #        boardMap[x][y] = self.emptySpaceFloodFill
             for snake in data["board"]["snakes"]:
                 count = 1
                 for element in snake["body"]:
