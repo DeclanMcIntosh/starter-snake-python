@@ -1,4 +1,4 @@
-"""trainingDummyMain.py: TODO Description of what this file does."""
+"""trainingDummyMain.py: Main file for deploying snakes/training dummys."""
 
 __author__ = "Declan McIntosh, Robert Lee, Luke Evans"
 __copyright__ = "Copyright 2019"
@@ -17,7 +17,7 @@ from trainingDummys import *
 
 from api import ping_response, start_response, move_response, end_response
 
-#Flags for what kind of network we are training
+#Initalize environment
 sizeType = 19
 
 envi = Snekgame(max_board_size=sizeType)
@@ -26,7 +26,6 @@ envi.enableOnline(False)
 
 comm = threadComms()
 comm.assertLoadNewFile()
-oepnNewFileCounter = 0
 
 @bottle.route('/')
 def index():
@@ -60,8 +59,6 @@ def start():
 
 @bottle.post('/move')
 def move():
-    global oepnNewFileCounter
-    #print("move Request recived")
     start = time.time()
     data = bottle.request.json
     if data["board"]["width"] in [7, 11, 19] and data["board"]["height"] in [7, 11, 19]:

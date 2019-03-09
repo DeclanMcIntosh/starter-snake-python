@@ -1,4 +1,4 @@
-"""trainingDummys.py: TODO Description of what this file does."""
+"""trainingDummys.py: Runs training dummys to play against main learning snake."""
 
 __author__ = "Declan McIntosh, Robert Lee, Luke Evans"
 __copyright__ = "Copyright 2019"
@@ -13,8 +13,7 @@ from random import randint, choice
 import random
 import time
 
-#force keras to use cpu
-#environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+#Force keras to use GPU 2
 environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import numpy as np
@@ -72,12 +71,6 @@ def startDummy(env, Comm, tryHard=False):
     model.add(LeakyReLU(alpha=0.003))
     model.add(Dense(layer2Size))
     model.add(LeakyReLU(alpha=0.003))
-    #model.add(Dense(layer3Size))
-    #model.add(LeakyReLU(alpha=0.003))
-    #model.add(Dense(layer4Size))
-    #model.add(LeakyReLU(alpha=0.003))
-    #model.add(Dense(layer5Size))
-    #model.add(LeakyReLU(alpha=0.003))
     model.add(Dense(nb_actions))
     model.add(Activation('linear'))
 
@@ -130,7 +123,7 @@ def startDummy(env, Comm, tryHard=False):
 
 def loadFromFile(dqn, tryhard, previousfileLength):
     '''
-    attempts to load agent random files untill an appropriate file is found
+    Attempts to load agent random files untill an appropriate file is found
     '''
     files = glob.glob("*.h5f")
     files.sort()
