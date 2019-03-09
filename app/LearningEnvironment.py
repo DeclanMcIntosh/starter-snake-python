@@ -18,13 +18,11 @@ from gym.utils import seeding
 
 #Variables for diagnostic document
 
-#Variables for diagnostic document
-
 max_board_size = 20
 max_health = 100
 num_proximity_flags = 8
 num_health_flags = 1
-viewsize = 25# OLD VERSION FOR DEEP NETWORK -> 29 # must be odd
+viewsize = 25 # OLD VERSION FOR DEEP NETWORK -> 29 # must be odd
 centerpoint = 19 # must be odd
 
 class Snekgame(gym.Env):
@@ -42,7 +40,8 @@ class Snekgame(gym.Env):
         self.diag_id = ""
         self.currentGame = ""
         self.currentSnake = ""
-        #stats
+
+        # statistics
         self.wins = 0
         self.loses = 0
         self.totalSteps = 0
@@ -54,19 +53,20 @@ class Snekgame(gym.Env):
         self.max_board_size=max_board_size
         #Diagnostic File
         self.diag = open("diagnostic.csv", "a+")
-        #Snake Decided Moved
+
+        #Snake Move Decision
         self.move = 'left'
         self.newMoveFlag = False
         self.gameOverFlag = False
         self.currSafeMoves = []
         self.headButtSafeMoves = []
         self.winFlag = False
-        #Snake Decided Moved
+        #Snake Move Decision
 
         # Initialize reward values
         self.init_wholesome_boi()
 
-        ## Board Encoding defintion 
+        ## Board Encoding definition 
         #self.noGo           = 0
         #self.empty          = 1.0
         #self.food           = -0.4
@@ -79,7 +79,7 @@ class Snekgame(gym.Env):
         #self.headMaxHP      = 0.9 # 0HP --------> max_health
         ## Board Encoding definition
 
-        ## Board Encoding defintion 
+        ## Board Encoding definition 
         self.noGo           = -1.0
         self.empty          = 1.0
         self.food           = -0.2
@@ -217,16 +217,18 @@ class Snekgame(gym.Env):
         #print("reset recived data")
         return observation
 
-    def headonheadfilter(self, boardstate, safeMoves, head_x, head_y):
-        """ Filter out Bad Headbutt Moves.
+    def headonheadfilter(self, boardState, safeMoves, head_x, head_y):
+        """ Filter out bad Headbutt Moves.
 
         The neural network has issues avoiding instant-death headbutt moves.
-        Takes the boardstate array, an array of known safe moves, and the head location. 
-        Returns a list of moves that are both:
-        (a) known to be safe and (b) can never be a headbutt with a larger snake.
+        @param the boardState array, an array of known safe moves, and the head location. 
+        @return a list of moves that are both:
+                (a) known to be safe and (b) can never be a headbutt with a larger snake.
         """
-        boardsize = len(boardstate)
+        boardsize = len(boardState)
         headbuttSafeMoves = []
+
+        # compass directions on board
         w = 0  
         e = 0 
         ne = 0
@@ -237,21 +239,21 @@ class Snekgame(gym.Env):
         se = 0
         # Ignore spaces outside the board array to avoid range issues
         if head_x - 2 >= 0:
-            w = boardstate[head_x-2, head_y]
+            w = boardState[head_x-2, head_y]
         if (head_x - 1 >= 0) and (head_y - 1 >= 0):
-            nw = boardstate[head_x-1, head_y-1]
+            nw = boardState[head_x-1, head_y-1]
         if head_y - 2 >= 0:
-            n = boardstate[head_x, head_y-2]
+            n = boardState[head_x, head_y-2]
         if (head_x + 1 < boardsize) and (head_y - 1 >= 0):
-            ne = boardstate[head_x+1, head_y-1]
+            ne = boardState[head_x+1, head_y-1]
         if (head_x + 2) < boardsize:
-            e = boardstate[head_x+2, head_y]
+            e = boardState[head_x+2, head_y]
         if (head_x + 1 < boardsize) and (head_y + 1 < boardsize):
-            se = boardstate[head_x+1, head_y+1]
+            se = boardState[head_x+1, head_y+1]
         if (head_y + 2) < boardsize:
-            s = boardstate[head_x, head_y+2]
+            s = boardState[head_x, head_y+2]
         if (head_x - 1 >= 0) and (head_y + 1 < boardsize):
-            sw = boardstate[head_x-1, head_y+1]
+            sw = boardState[head_x-1, head_y+1]
         for move in safeMoves:
             if move == "up":
                 if (n != self.headMaxHP) and (nw != self.headMaxHP) and (ne != self.headMaxHP):
@@ -270,10 +272,10 @@ class Snekgame(gym.Env):
     def findObservation(self, data):
         """ Parse "observation" data.
 
-        1. When the snake recieves a JSON, process into a boardstate array
-        2. Check for boardstate changes that result in rewards
-        2. Use the boardstate array to produce a list of safe moves (ie. not instant death)
-        3. Process the boardstate into a centred view for the learning algorithm
+        1. When the snake recieves a JSON, process into a boardState array
+        2. Check for boardState changes that result in rewards
+        2. Use the boardState array to produce a list of safe moves (ie. not instant death)
+        3. Process the boardState into a centred view for the learning algorithm
         4. Call noStuckMoves to produce a list of moves that will not get the snake trapped
         5. Return the centred view "observation", total reward, and arrays of safeMoves, headButtSafeMoves, and noStuckMoves
         """
@@ -417,7 +419,7 @@ class Snekgame(gym.Env):
         centeredView = np.full(shape=(37, 37), fill_value=self.noGo, dtype=np.float32)
         centeredViewFinal = np.full(shape=(viewsize, viewsize), fill_value=self.noGo, dtype=np.float32)
         observation = np.full(shape=((viewsize * viewsize) + num_health_flags + num_proximity_flags,), fill_value=self.noGo, dtype=np.float32)
-        # Centre boardstate on current head location
+        # Centre boardState on current head location
         centeredView[centerpoint - head_x - 1 : centerpoint - head_x + centerpoint - 1,centerpoint - head_y - 1 : centerpoint - head_y + centerpoint - 1] = board_state
         # Truncate centred view to limit input space for the learning algorithm
         centeredViewFinal=centeredView[centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2),centerpoint - int((viewsize - 1)/2) -1: centerpoint + int((viewsize - 1)/2)]
@@ -445,9 +447,9 @@ class Snekgame(gym.Env):
         return None
 
     def fillSnakeBodySegments(self, board_state, head_val, whole_snake):
-        """ Fill a given snake into a boardstate
+        """ Fill a given snake into a boardState
 
-        Given a boardstate and a snake, place the snake into the board segment by segment
+        Given a boardState and a snake, place the snake into the board segment by segment
         """
         wallDeathFlag = False
         body_x = 0
