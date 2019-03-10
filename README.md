@@ -1,66 +1,29 @@
-# starter-snake-python
+# keras-rl Battle Snake
 
-A simple [Battlesnake AI](http://battlesnake.io) written in Python. 
+## Overview
 
-Visit [https://github.com/battlesnakeio/community/blob/master/starter-snakes.md](https://github.com/battlesnakeio/community/blob/master/starter-snakes.md) for API documentation and instructions for running your AI.
+## Learning Setup
 
-This AI client uses the [bottle web framework](http://bottlepy.org/docs/dev/index.html) to serve requests and the [gunicorn web server](http://gunicorn.org/) for running bottle on Heroku. Dependencies are listed in [requirements.txt](requirements.txt).
+### Training data gathering
+This project used two main learning situations, the first was a self play system where the main learning agent would play against 1-7 instances of past versions of itself. This allowed the agent to train through a huge amount of data quickly with relatively poor data to start off with. 
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+The second source of training data was running the snake against other snakes people had made publicly available. This was the prefered data in our testing as we had little time before the tournament to train and this data allowed the snake to learn from pre-existing metas rather than be required to develop it's own. 
 
-#### You will need...
+### Data Representation
+The data into the network was a square view of the game board centered around our head. Enemy snake heads were encoded with their health and their relative length. We also passed the snakes current health, immediate food flags and immediate danger flags. All body parts were encoded as the same.
 
-* a working Python 2.7 development environment ([getting started guide](http://hackercodex.com/guide/python-development-environment-on-mac-osx/))
-* experience [deploying Python apps to Heroku](https://devcenter.heroku.com/articles/getting-started-with-python#introduction)
-* [pip](https://pip.pypa.io/en/latest/installing.html) to install Python dependencies
+We chose to pass a centered view as this was found to significantly increase the learning rate over a static view of the board.
 
-## Running the Snake Locally
+### Reward Scheme
 
-1) [Fork this repo](https://github.com/battlesnakeio/starter-snake-python/fork).
+## Low Level Filters
 
-2) Clone repo to your development environment:
-```
-git clone git@github.com:<your github username>/starter-snake-python.git
-```
+## Peformance
 
-3) Install dependencies using [pip](https://pip.pypa.io/en/latest/installing.html):
-```
-pip install -r requirements.txt
-```
+## Build instuctions
 
-4) Run local server:
-```
-python app/main.py
-```
+This project is no longer mainatined, if you would like to use it as a starting point for one of your projects please email me at battleSnakeInfo@declanmcintosh.com and I would love to help you get started and provide you with some of our pre-trained models.
 
-5) Test your snake by sending a curl to the running snake
-```
-curl -XPOST -H 'Content-Type: application/json' -d '{ "hello": "world"}' http://localhost:8080/start
-```
-
-## Deploying to Heroku
-
-1) Create a new Heroku app:
-```
-heroku create [APP_NAME]
-```
-
-2) Deploy code to Heroku servers:
-```
-git push heroku master
-```
-
-3) Open Heroku app in browser:
-```
-heroku open
-```
-or visit [http://APP_NAME.herokuapp.com](http://APP_NAME.herokuapp.com).
-
-4) View server logs with the `heroku logs` command:
-```
-heroku logs --tail
-```
-
-## Questions?
+## The Amazing Event Organizers!
 
 Email [battlesnake@sendwithus.com](mailto:battlesnake@sendwithus.com), or tweet [@send_with_us](http://twitter.com/send_with_us).
