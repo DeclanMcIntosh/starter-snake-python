@@ -399,6 +399,8 @@ class Snekgame(gym.Env):
         return observation, reward, safeMoves, headButtSafeMoves, noStuckMoves
     
     def endEnvi(self, win):
+        """ End environment and update flags for reward calculations
+        """
         self.gameOverFlag = True
         self.winFlag = win
 
